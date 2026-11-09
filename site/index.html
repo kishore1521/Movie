@@ -302,7 +302,7 @@
 <div class="gate" id="gate">
   <div class="k">A TASTE ENGINE · PROTOTYPE</div>
   <h1>Next Frame</h1>
-  <p>Film picks for Kris &amp; Prashanth. Best with headphones.</p>
+  <p>Film picks for Kris &amp; Prashanth.</p>
   <button class="go" id="go">Enter with sound</button>
   <button class="quiet" id="quiet">enter silently</button>
 </div>
@@ -1211,14 +1211,14 @@ function act(a, auto = true) {
   if (!curFilm) return; const f = curFilm, prev = store.map[f.id] ? { ...store.map[f.id] } : null, idx = curIdx();
   if (prev && prev.state === a) { setSwipe(f.id, null); toast('Cleared', () => setSwipe(f.id, prev)); return; }
   setSwipe(f.id, { state: a, vibe: null, at: Date.now() });
-  stampFlash(a);
+  stampFlash(a); uiSfx(a);
   const undo = () => { setSwipe(f.id, prev); goToPick(idx); };
   if (a === 'want') { toast(`Added ${f.title} to your watchlist`, undo); if (auto) setTimeout(nextFilm, 900); }
   if (a === 'nope') { toast(`Skipped ${f.title}`, undo); if (auto) setTimeout(nextFilm, 900); }
   if (a === 'seen') toast('Seen it. How was it?', undo);
 }
 $('acts').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.a === 'trailer') playTrailer(curFilm); else act(b.dataset.a); });
-$('seenq').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || !curFilm) return; setSwipe(curFilm.id, { state: 'seen', vibe: b.dataset.v, at: Date.now() }); toast(b.dataset.v === 'up' ? 'Noted. More like this.' : b.dataset.v === 'mid' ? 'Noted. Counted as so-so.' : 'Noted. Less like this.'); setTimeout(nextFilm, 600); });
+$('seenq').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || !curFilm) return; setSwipe(curFilm.id, { state: 'seen', vibe: b.dataset.v, at: Date.now() }); uiSfx(b.dataset.v === 'down' ? 'nope' : b.dataset.v === 'up' ? 'want' : 'seen'); toast(b.dataset.v === 'up' ? 'Noted. More like this.' : b.dataset.v === 'mid' ? 'Noted. Counted as so-so.' : 'Noted. Less like this.'); setTimeout(nextFilm, 600); });
 const STAMPS = { want: ['WATCHLIST', '#7dffb2'], nope: ['NOT FOR US', '#ff5a6e'], seen: ['SEEN IT', '#5ef0ff'] };
 function stampShow(a, op) { const st = $('stamp'); const [t, c] = STAMPS[a]; st.textContent = t; st.style.color = c; st.style.opacity = op; st.style.transform = `translate(-50%,-50%) rotate(${a === 'nope' ? 12 : -12}deg) scale(${.9 + op * .15})`; }
 function stampFlash(a) { stampShow(a, 1); setTimeout(() => { $('stamp').style.transition = 'opacity .5s'; $('stamp').style.opacity = 0; setTimeout(() => $('stamp').style.transition = '', 520); }, 380); }
@@ -1238,52 +1238,48 @@ $('dClose').addEventListener('click', () => $('drawer').classList.remove('on'));
 $('dBody').addEventListener('click', e => { const tb = e.target.closest('button[data-trailer]'); if (tb) { playTrailer(FILMMAP[tb.dataset.trailer]); return; } const b = e.target.closest('button[data-undo]'); if (b) { setSwipe(b.dataset.undo, null); toast('Removed. It\u2019s back in your picks next visit.'); } });
 onStoreChange();
 
-/* =============== SOUND =============== */
+/* =============== SOUND — short, soft cues only; nothing plays in the background =============== */
 let A = null;
 function initAudio() {
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
   const out = ctx.createGain(); out.gain.value = 0; out.connect(ctx.destination);
   const comp = ctx.createDynamicsCompressor(); comp.connect(out);
   const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate), ch = buf.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
-  const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; src.start();
-  const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 1.2; bp.frequency.value = 400; const wg = ctx.createGain(); wg.gain.value = 0; src.connect(bp).connect(wg).connect(comp);
-  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 380; lp.Q.value = 4; const dg = ctx.createGain(); dg.gain.value = 0; lp.connect(dg).connect(comp);
-  [55, 82.4, 110.6, 164.6].forEach((f, i) => { const o = ctx.createOscillator(); o.type = i % 2 ? 'sawtooth' : 'triangle'; o.frequency.value = f; o.detune.value = (i - 1.5) * 8; const g = ctx.createGain(); g.gain.value = .07 / (i + 1); o.connect(g).connect(lp); o.start(); });
-  return { ctx, out, bus: comp, bp, wg, lp, dg, buf, on: false };
+  return { ctx, out, bus: comp, buf, on: false };
 }
 function noiseHit(t, dur, type, f0, f1, gain, q = 1) {
   const c = A.ctx, n = c.createBufferSource(); n.buffer = A.buf; const f = c.createBiquadFilter(); f.type = type; f.Q.value = q;
   f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
-  const g = c.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + Math.min(.04, dur * .3)); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  const g = c.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + dur * .45); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
   n.connect(f).connect(g).connect(A.bus); n.start(t, Math.random()); n.stop(t + dur + .05);
 }
-function tone(t, dur, type, f0, f1, gain, attack = .005) {
+function tone(t, dur, type, f0, f1, gain, attack = .008) {
   const c = A.ctx, o = c.createOscillator(); o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
   const g = c.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + attack); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
   o.connect(g).connect(A.bus); o.start(t); o.stop(t + dur + .05);
 }
+const sOn = () => A && A.on;
+// intro: a soft rush as posters fly in, a warm chord when the title forms
 function introSfx() {
-  if (!A || !A.on) return; const c = A.ctx, t0 = c.currentTime + .03;
-  tone(t0, 1.6, 'sine', 70, 26, .9); noiseHit(t0, .8, 'lowpass', 400, 60, .5);
-  noiseHit(t0 + .9, 1.95, 'bandpass', 180, 5200, .28, 2.5);
-  tone(t0 + .9, 1.95, 'sawtooth', 55, 220, .05, 1.6);
-  for (let i = 0; i < 34; i++) tone(t0 + 2.05 + Math.random() * 1.0, .05, 'square', 1800 + Math.random() * 1800, 1500, .025);
-  const H = t0 + 2.9;
-  tone(H, 2.4, 'sine', 55, 32, 1.0); noiseHit(H, 1.2, 'highpass', 6000, 1500, .35);
-  [110, 164.8, 261.6, 329.6].forEach(f => { const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = (Math.random() - .5) * 14; const lpf = c.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.setValueAtTime(2600, H); lpf.frequency.exponentialRampToValueAtTime(220, H + 2.6); const g = c.createGain(); g.gain.setValueAtTime(.0001, H); g.gain.exponentialRampToValueAtTime(.07, H + .02); g.gain.exponentialRampToValueAtTime(.0001, H + 2.8); o.connect(lpf).connect(g).connect(A.bus); o.start(H); o.stop(H + 3); });
-  for (let i = 0; i < 3; i++) noiseHit(t0 + 3.1 + i * .22, .12, 'highpass', 3000, 2000, .15);
-  noiseHit(t0 + 3.85, 1.5, 'bandpass', 5000, 160, .45, 1.4); tone(t0 + 3.85, 1.2, 'sine', 90, 30, .6);
-  A.dg.gain.setValueAtTime(0, t0); A.dg.gain.linearRampToValueAtTime(1, t0 + 6);
+  if (!sOn()) return; const t0 = A.ctx.currentTime + .03;
+  noiseHit(t0 + .8, 2.2, 'bandpass', 250, 1800, .07, .8);
+  [220, 277.2, 329.6, 440].forEach((f, i) => tone(t0 + 2.85 + i * .04, 2.6, 'sine', f, f, .035, .25));
+  noiseHit(t0 + 3.8, 1.2, 'bandpass', 1600, 300, .05, .8);
 }
-function shatterSfx() {
-  if (!A || !A.on) return; const t = A.ctx.currentTime;
-  noiseHit(t, .6, 'highpass', 4000, 2000, .35);
-  for (let i = 0; i < 5; i++) tone(t + Math.random() * .25, .5, 'sine', 1800 + Math.random() * 3200, 1700, .06);
+// moving between picks: a quiet whoosh
+function shatterSfx() { if (!sOn()) return; noiseHit(A.ctx.currentTime, .45, 'bandpass', 1400, 500, .045, .9); }
+// a pick settles on screen: one soft note
+function lockSfx() { if (!sOn()) return; const t = A.ctx.currentTime; tone(t, .5, 'sine', 659.3, 659.3, .03, .02); }
+// button feedback
+function uiSfx(kind) {
+  if (!sOn()) return; const t = A.ctx.currentTime;
+  if (kind === 'want') { tone(t, .28, 'sine', 523.3, 523.3, .04); tone(t + .09, .4, 'sine', 784, 784, .04); }
+  else if (kind === 'nope') tone(t, .22, 'sine', 330, 247, .035);
+  else tone(t, .25, 'sine', 587.3, 587.3, .035);
 }
-function lockSfx() { if (!A || !A.on) return; const t = A.ctx.currentTime; tone(t, .35, 'sine', 440, 430, .08); tone(t + .07, .35, 'sine', 660, 650, .08); }
 function setSoundUI() { [$('snd'), $('snd2')].forEach(b => b.classList.toggle('on', !!(A && A.on))); $('sndt').textContent = A && A.on ? 'Sound on' : 'Sound'; }
 function soundOn(on) {
-  try { if (!A) A = initAudio(); A.on = on; A.ctx.resume(); A.out.gain.setTargetAtTime(on ? .8 : 0, A.ctx.currentTime, .2); if (on && !introOn) A.dg.gain.setTargetAtTime(1, A.ctx.currentTime, .5); }
+  try { if (!A) A = initAudio(); A.on = on; A.ctx.resume(); A.out.gain.setTargetAtTime(on ? .8 : 0, A.ctx.currentTime, .2);  }
   catch (e) { $('sndt').textContent = 'No audio'; }
   setSoundUI();
 }
@@ -1434,7 +1430,6 @@ function endIntro() {
   introOn = false; wallU.uIntroOn.value = 0; document.body.classList.remove('lock');
   $('skip').classList.remove('on'); ['boot', 'iline', 'isub', 'ibars'].forEach(id => $(id).classList.remove('on')); $('iflash').style.opacity = 0;
   $('gate').classList.add('gone');
-  if (A && A.on) A.dg.gain.setTargetAtTime(1, A.ctx.currentTime, .4);
   readScroll();
 }
 $('go').addEventListener('click', () => startIntro(true));
@@ -1615,11 +1610,6 @@ function frame() {
   ui.classList.toggle('intro', introOn);
   $('endc').classList.toggle('show', endA > .5 && n > 0);
 
-  if (A && A.on) {
-    const now = A.ctx.currentTime, camSpeed = Math.min(vel * (film ? Math.sin(Math.PI * e) * 2 + .2 : .3), 1.5);
-    A.wg.gain.setTargetAtTime(introOn ? 0 : camSpeed * .35, now, .06); A.bp.frequency.setTargetAtTime(300 + camSpeed * 2600, now, .06);
-    A.lp.frequency.setTargetAtTime(260 + ana * 900 + e * 500, now, .2);
-  }
 
   composer.render();
   requestAnimationFrame(frame);

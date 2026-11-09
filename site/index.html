@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Next Frame — prototype</title>
+<title>Next Frame</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;500;800&family=Anton&family=Playfair+Display:ital,wght@1,700&family=Syne:wght@800&family=JetBrains+Mono:wght@300;400;600&family=Space+Grotesk:wght@400;500&display=swap" rel="stylesheet">
@@ -1211,6 +1211,7 @@ function endIntro() {
   $('skip').classList.remove('on'); ['boot', 'iline', 'isub', 'ibars'].forEach(id => $(id).classList.remove('on')); $('iflash').style.opacity = 0;
   $('gate').classList.add('gone');
   if (A && A.on) A.dg.gain.setTargetAtTime(1, A.ctx.currentTime, .4);
+  readScroll();
 }
 $('go').addEventListener('click', () => startIntro(true));
 $('quiet').addEventListener('click', () => startIntro(false));

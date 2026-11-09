@@ -170,7 +170,7 @@
   .seenq button { pointer-events:auto; background:none; border:1px solid var(--faint); color:var(--fg); font:inherit; padding:6px 11px; border-radius:99px; cursor:pointer; }
   .status { margin-top:8px; font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:.12em; color:var(--cy); text-transform:uppercase; min-height:12px; }
   .seg.wl { color:var(--fg); padding:7px 13px !important; cursor:pointer; font-size:12.5px; gap:6px; }
-  .seg.wl b { font-weight:500; }
+  .seg.wl b { font-weight:500; } .seg.wl { white-space:nowrap; }
   .stamp { position:fixed; left:50%; top:38%; transform:translate(-50%,-50%) rotate(-12deg); font-family:'Unbounded', sans-serif; font-weight:800; font-size:clamp(28px, 6vw, 56px); letter-spacing:.04em; padding:10px 22px; border:4px solid currentColor; border-radius:12px; opacity:0; pointer-events:none; z-index:6; text-shadow:0 0 30px currentColor; }
   .toast { position:fixed; left:50%; top:86px; transform:translate(-50%, -10px); background:rgba(6,9,14,.86); border:1px solid var(--faint); padding:10px 16px; border-radius:99px; font-size:13px; opacity:0; transition:opacity .3s, transform .4s; z-index:7; pointer-events:none; white-space:nowrap; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
   .toast.on { opacity:1; transform:translate(-50%, 0); }
@@ -204,6 +204,39 @@
   .tbox { width:min(1100px, 100%); aspect-ratio:16/9; background:#000; border-radius:10px; overflow:hidden; box-shadow:0 0 80px rgba(94,240,255,.15); }
   .tbox iframe { width:100%; height:100%; border:0; display:block; }
   #tclose { background:none; border:1px solid var(--faint); color:var(--fg); font:500 13px 'Space Grotesk', sans-serif; padding:10px 18px; border-radius:99px; cursor:pointer; }
+
+  /* ---- navigation ---- */
+  .herobtn { pointer-events:auto; margin-top:18px; background:var(--fg); color:#05070b; border:0; font:500 14px 'Space Grotesk', sans-serif; padding:12px 20px; border-radius:99px; cursor:pointer; }
+  .pnav { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+  .pnav button { pointer-events:auto; background:rgba(255,255,255,.07); border:1px solid var(--faint); color:var(--fg); font:500 12.5px 'Space Grotesk', sans-serif; padding:7px 12px; border-radius:99px; cursor:pointer; }
+  .pnav button:disabled { opacity:.3; cursor:default; }
+  .pnav #pK { flex:1; text-align:center; font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:.2em; color:var(--dim); text-transform:uppercase; }
+  .pnav #pK b { color:var(--accent); font-weight:400; }
+  #wallB { padding:7px 11px; }
+  .acts button span { display:inline !important; }
+  .toast { display:flex; align-items:center; gap:12px; }
+  .toast #toastU { pointer-events:auto; background:none; border:1px solid var(--faint); color:var(--cy); font:500 12px 'Space Grotesk', sans-serif; padding:5px 11px; border-radius:99px; cursor:pointer; display:none; }
+  .toast.undo #toastU { display:block; } .toast.undo { pointer-events:auto; }
+  .coach { position:fixed; z-index:7; left:50%; top:50%; transform:translate(-50%,-50%) scale(.96); width:min(360px, calc(100vw - 40px)); background:rgba(6,10,15,.94); border:1px solid rgba(94,240,255,.4); border-radius:16px; padding:20px; box-shadow:0 20px 80px rgba(0,0,0,.6), 0 0 40px rgba(94,240,255,.12); opacity:0; pointer-events:none; transition:opacity .35s, transform .4s; font-size:14px; line-height:1.55; }
+  .coach.on { opacity:1; pointer-events:auto; transform:translate(-50%,-50%); }
+  .coach > b { font-family:'Unbounded', sans-serif; font-size:16px; } .coach p { color:var(--dim); margin-top:10px; } .coach p b { color:var(--fg); font-weight:500; }
+  .coach button { margin-top:16px; width:100%; background:var(--fg); color:#05070b; border:0; font:500 14px 'Space Grotesk', sans-serif; padding:11px; border-radius:99px; cursor:pointer; }
+  .grid { position:fixed; left:0; right:0; bottom:0; top:70px; z-index:5; background:rgba(4,6,10,.94); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); overflow-y:auto; padding:18px 24px 40px; transform:translateY(100%); transition:transform .5s cubic-bezier(.2,.8,.1,1); pointer-events:auto; }
+  .grid.on { transform:none; }
+  .ghead { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .ghead h3 { font-family:'Unbounded', sans-serif; font-weight:800; font-size:22px; letter-spacing:-.02em; } .ghead small { color:var(--dim); font-size:12.5px; }
+  .ghead button { background:none; border:1px solid var(--faint); color:var(--fg); width:38px; height:38px; border-radius:50%; cursor:pointer; }
+  .gbody { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:16px; }
+  .gcard { cursor:pointer; text-align:left; background:none; border:0; color:var(--fg); padding:0; font:inherit; }
+  .gcard .gp { position:relative; aspect-ratio:2/3; border-radius:8px; overflow:hidden; background:#111; transition:transform .25s; }
+  .gcard:hover .gp { transform:translateY(-4px); }
+  .gcard img { width:100%; height:100%; object-fit:cover; display:block; }
+  .gcard .gm { position:absolute; left:8px; top:8px; background:rgba(0,0,0,.7); font-family:'JetBrains Mono', monospace; font-size:10.5px; padding:3px 7px; border-radius:99px; }
+  .gcard .gs { position:absolute; right:8px; top:8px; background:var(--cy); color:#05070b; font-size:11px; padding:3px 7px; border-radius:99px; }
+  .gcard b { display:block; font-weight:500; font-size:13.5px; margin-top:8px; line-height:1.3; } .gcard small { color:var(--dim); font-size:11.5px; }
+  .gempty { color:var(--dim); padding:20px 0; }
+  @media (max-width:760px) { .grid { padding:14px 12px 40px; } .gbody { grid-template-columns:repeat(3, 1fr); gap:10px; } .gcard b { font-size:12px; } .gcard small { display:none; }
+    .acts button, .acts a { padding:8px 11px; font-size:12px; } .pnav button { padding:7px 10px; } }
   .endc button { pointer-events:auto; margin-top:18px; background:none; border:1px solid var(--faint); color:var(--fg); font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.2em; padding:10px 18px; border-radius:99px; cursor:pointer; }
 </style>
 <script type="importmap">
@@ -244,6 +277,7 @@
       <div class="seg" id="typ"><button data-v="all" class="on">All</button><button data-v="movie">Movies</button><button data-v="tv">Shows</button></div>
       <div class="seg" id="cat"><label>Genre</label><button data-v="all" class="on">All</button><button data-v="horror">Horror</button><button data-v="thriller">Thriller</button><button data-v="action">Action</button><button data-v="comedy">Comedy</button><button data-v="drama">Drama</button></div>
       <div class="seg" id="pace"><label>Pace</label><button data-v="any" class="on">Any</button><button data-v="fast">Fast</button><button data-v="medium">Medium</button><button data-v="slow">Slow</button></div>
+      <button class="seg wl" id="gridBtn">⊞ <span class="hide-m">All picks</span></button>
       <button class="seg wl" id="wlBtn">♥ <b id="wlCount">0</b></button>
       <button class="seg snd" id="snd"><span class="bars"><b></b><b></b><b></b></span><span id="sndt">Sound</span></button>
     </div>
@@ -252,7 +286,8 @@
   <div class="hero" id="hero">
     <div class="k">280 films on the wall</div>
     <h1>Your next favourite<br><span>film is in here.</span></h1>
-    <p id="herop">Scroll, and watch your picks find you. Swipe to sort them.</p>
+    <p id="herop">Scroll to fly through your picks, or tap any glowing poster.</p>
+    <button class="herobtn" id="heroGrid">⊞ Browse all picks</button>
   </div>
   <div class="cue" id="cue">SCROLL ↓</div>
 
@@ -269,12 +304,13 @@
   <div id="seeds"></div>
 
   <div id="panel">
-    <div class="k"><span id="pK">Pick 01 / 07</span><span id="pMeta"></span></div>
+    <div class="pnav"><button id="prevB">‹ Prev</button><span id="pK">Pick 01 / 07</span><button id="nextB">Next ›</button><button id="wallB" title="See all picks">⊞</button></div>
+    <div class="k"><span id="pMeta"></span></div>
     <h2 id="pTitle"></h2>
     <div class="genre" id="pGenre"></div>
     <div class="stillbox" id="stillbox"><div class="sb" id="sbA"></div><div class="sb" id="sbB"></div><button class="sbplay" id="sbPlay">▶ Play trailer</button></div>
     <div class="matchrow"><div class="big" id="pMatch"></div><div class="lbl"><span id="pFor"></span><em id="pTake"></em></div></div>
-    <div class="acts" id="acts"><button data-a="nope" title="Not for us (←)">✕<span>Not for us</span></button><button data-a="seen" title="Seen it (↑)">◉<span>Seen it</span></button><button data-a="want" class="pri" title="Watchlist (→)">♥<span>Watchlist</span></button><button class="tr" id="pTrailer" data-a="trailer">▶<span>Trailer</span></button></div>
+    <div class="acts" id="acts"><button data-a="want" class="pri">♥ <span>Want to watch</span></button><button data-a="seen">◉ <span>Already seen</span></button><button data-a="nope">✕ <span>Not for us</span></button><button class="tr" id="pTrailer" data-a="trailer">▶ <span>Trailer</span></button></div>
     <div class="seenq" id="seenq">Did you like it? <button data-v="up">👍 Loved it</button><button data-v="down">👎 Nah</button></div>
     <div class="status" id="pStatus"></div>
     <div class="sect"><h4>Why this pick</h4><ul class="why" id="pWhy"></ul></div>
@@ -287,7 +323,9 @@
   <div class="endc" id="endc"><h2>That's your lineup.</h2><p>Your swipes are saved on this phone — tap ♥ at the top for your watchlist. Posters, stills and trailers come from TMDB.</p><button id="replay">↺ REPLAY INTRO</button></div>
   <div class="empty" id="empty">Nothing left with these filters — try another genre or pace.</div>
   <div class="stamp" id="stamp"></div>
-  <div class="toast" id="toast"></div>
+  <div class="toast" id="toast"><span id="toastT"></span><button id="toastU">Undo</button></div>
+  <div class="coach" id="coach"><b>How it works</b><p>‹ Prev / Next › (or just scroll) moves between picks. ⊞ shows all of them at once.</p><p>Tap <b>♥ Want to watch</b>, <b>◉ Already seen</b> or <b>✕ Not for us</b> to sort a pick — you can always undo.</p><button id="coachOk">Got it</button></div>
+  <div class="grid" id="grid"><div class="ghead"><div><h3>All picks</h3><small id="gSub"></small></div><button id="gClose">✕</button></div><div class="gbody" id="gBody"></div></div>
   <div class="tmodal" id="tmodal"><div class="tbox"><iframe id="tframe" title="Trailer" allow="autoplay; encrypted-media; picture-in-picture; fullscreen"></iframe></div><button id="tclose">✕ Close</button></div>
   <div class="drawer" id="drawer"><div class="dhead"><h3>Your lists</h3><button id="dClose">✕</button></div><div id="dBody"></div></div>
 </div>
@@ -958,13 +996,19 @@ function fillPanel(i) {
   const bd = tm(f.id).backdrops || [];
   stillsEl.style.backgroundImage = bd.length ? `url(${IMG}w780${bd[0]})` : (filmImg[f.id] ? `url(${filmImg[f.id]})` : 'none');
   $('panel').scrollTop = 0;
+  $('prevB').disabled = i === 0; $('nextB').disabled = i === reel.length - 1;
+  if (!coachShown) { coachShown = true; setTimeout(() => $('coach').classList.add('on'), 900); }
   paintStatus();
 }
 function segBind(id, fn) { $(id).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; $(id).querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); fn(b.dataset.v); }); }
 function refilter() {
   buildReel(); sizeScroll(); lastFilmIdx = -1;
   $('empty').style.display = reel.length ? 'none' : 'block'; $('hpace').textContent = pace;
-  if (raw > ANA - .05) { const max = document.documentElement.scrollHeight - innerHeight; const r = ANA + .02; scrollTo(0, r / units() * max); target = raw = prevRaw = r; }
+  const label = typ === 'tv' ? 'shows' : typ === 'movie' ? 'movies' : 'picks';
+  if ($('grid').classList.contains('on')) { paintGrid(); return; }
+  if (!reel.length) { toast(`No ${label} match those filters`); return; }
+  toast(`${reel.length} ${label}${cat !== 'all' ? ' · ' + CATS[cat] : ''}${pace !== 'any' ? ' · ' + pace + ' pace' : ''}`);
+  if (!introOn) goToPick(0);
 }
 segBind('cat', v => { cat = v; refilter(); });
 segBind('typ', v => { typ = v; refilter(); });
@@ -983,7 +1027,9 @@ function onStoreChange() {
 }
 
 let toastT = 0;
-function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1800); }
+let undoFn = null;
+function toast(msg, undo) { const t = $('toast'); $('toastT').textContent = msg; undoFn = undo || null; t.classList.toggle('undo', !!undo); t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => { t.classList.remove('on', 'undo'); undoFn = null; }, undo ? 5000 : 1900); }
+$('toastU').addEventListener('click', () => { const f = undoFn; $('toast').classList.remove('on', 'undo'); undoFn = null; if (f) f(); });
 async function setSwipe(id, val) {
   if (val) store.map[id] = val; else delete store.map[id];
   saveLocal(); onStoreChange();
@@ -997,26 +1043,49 @@ function paintStatus() {
   $('seenq').classList.toggle('on', !!v && v.state === 'seen' && !v.vibe);
   $('pStatus').textContent = !v ? '' : v.state === 'want' ? '♥ On your watchlist' : v.state === 'nope' ? '✕ Marked not for you' : v.vibe === 'up' ? '◉ Seen it · loved it' : v.vibe === 'down' ? '◉ Seen it · not a fan' : '◉ Seen it';
 }
-function nextFilm() {
-  const fRaw = raw - ANA, fi = Math.floor(fRaw), max = document.documentElement.scrollHeight - innerHeight;
-  const r = Math.min(ANA + fi + 1 + .55, units() - .01);
-  window.scrollTo({ top: r / units() * max, behavior: 'smooth' });
+function scrollToR(r, smooth) { const max = document.documentElement.scrollHeight - innerHeight; window.scrollTo({ top: r / units() * max, behavior: smooth ? 'smooth' : 'instant' }); }
+const curIdx = () => clamp(Math.round(raw - ANA - .55), 0, Math.max(reel.length - 1, 0));
+function goToPick(i) {
+  if (!reel.length) return; i = clamp(i, 0, reel.length - 1); closeGrid();
+  const here = raw - ANA;
+  if (raw > ANA - .1 && Math.abs(i + .55 - here) <= 1.2) { scrollToR(ANA + i + .55, true); return; }
+  scrollToR(ANA + i + .03, false); target = raw = prevRaw = ANA + i + .03; lastFilmIdx = -1;
+  setTimeout(() => scrollToR(ANA + i + .55, true), 80);
 }
+function nextFilm() { goToPick(curIdx() + 1); }
+$('prevB').addEventListener('click', () => goToPick(curIdx() - 1));
+$('nextB').addEventListener('click', () => goToPick(curIdx() + 1));
+// all-picks grid
+function paintGrid() {
+  const label = typ === 'tv' ? 'shows' : typ === 'movie' ? 'movies' : 'films & shows';
+  $('gSub').textContent = `${reel.length} ${label} · tap one to open it · use the filters above to narrow down`;
+  $('gBody').innerHTML = reel.length ? reel.map((f, i) => { const v = store.map[f.id]; const st = v ? (v.state === 'want' ? '♥' : v.state === 'seen' ? '◉' : '✕') : '';
+    return `<button class="gcard" data-i="${i}"><div class="gp"><img src="${filmImg[f.id] || ''}" alt="" loading="lazy"><span class="gm">${f.m}%</span>${st ? `<span class="gs">${st}</span>` : ''}</div><b>${f.title}</b><small>${f.lang} · ${f.year}</small></button>`; }).join('') : '<div class="gempty">Nothing matches these filters.</div>';
+}
+function openGrid() { paintGrid(); const tb = document.querySelector('.top').getBoundingClientRect(); $('grid').style.top = Math.round(tb.bottom + 6) + 'px'; $('grid').classList.add('on'); }
+function closeGrid() { $('grid').classList.remove('on'); }
+$('gBody').addEventListener('click', e => { const c = e.target.closest('.gcard'); if (c) goToPick(+c.dataset.i); });
+$('gClose').addEventListener('click', closeGrid);
+[$('gridBtn'), $('wallB'), $('heroGrid')].forEach(b => b.addEventListener('click', () => $('grid').classList.contains('on') ? closeGrid() : openGrid()));
+// first-time tips
+let coachShown = false; try { coachShown = !!localStorage.getItem('nf-coach'); } catch (e) {}
+$('coachOk').addEventListener('click', () => { $('coach').classList.remove('on'); try { localStorage.setItem('nf-coach', '1'); } catch (e) {} });
 function act(a, auto = true) {
-  if (!curFilm) return; const f = curFilm, cur = store.map[f.id];
-  if (cur && cur.state === a && a !== 'seen') { setSwipe(f.id, null); toast('Undone'); return; }
+  if (!curFilm) return; const f = curFilm, prev = store.map[f.id] ? { ...store.map[f.id] } : null, idx = curIdx();
+  if (prev && prev.state === a) { setSwipe(f.id, null); toast('Cleared', () => setSwipe(f.id, prev)); return; }
   setSwipe(f.id, { state: a, vibe: null, at: Date.now() });
   stampFlash(a);
-  if (a === 'want') { toast(`♥ ${f.title} added to your watchlist`); if (auto) setTimeout(nextFilm, 650); }
-  if (a === 'nope') { toast(`✕ Skipping ${f.title}`); if (auto) setTimeout(nextFilm, 650); }
-  if (a === 'seen') toast('Seen it — did you like it?');
+  const undo = () => { setSwipe(f.id, prev); goToPick(idx); };
+  if (a === 'want') { toast(`♥ Saved ${f.title}`, undo); if (auto) setTimeout(nextFilm, 900); }
+  if (a === 'nope') { toast(`✕ Skipped ${f.title}`, undo); if (auto) setTimeout(nextFilm, 900); }
+  if (a === 'seen') toast('◉ Seen it — did you like it?', undo);
 }
 $('acts').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.a === 'trailer') playTrailer(curFilm); else act(b.dataset.a); });
 $('seenq').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || !curFilm) return; setSwipe(curFilm.id, { state: 'seen', vibe: b.dataset.v, at: Date.now() }); toast(b.dataset.v === 'up' ? 'Noted — more like this' : 'Noted — less like this'); setTimeout(nextFilm, 600); });
 const STAMPS = { want: ['WATCHLIST ♥', '#7dffb2'], nope: ['NOT FOR US', '#ff5a6e'], seen: ['SEEN IT', '#5ef0ff'] };
 function stampShow(a, op) { const st = $('stamp'); const [t, c] = STAMPS[a]; st.textContent = t; st.style.color = c; st.style.opacity = op; st.style.transform = `translate(-50%,-50%) rotate(${a === 'nope' ? 12 : -12}deg) scale(${.9 + op * .15})`; }
 function stampFlash(a) { stampShow(a, 1); setTimeout(() => { $('stamp').style.transition = 'opacity .5s'; $('stamp').style.opacity = 0; setTimeout(() => $('stamp').style.transition = '', 520); }, 380); }
-addEventListener('keydown', e => { if (!ui.classList.contains('show-hold')) return; if (e.key === 'ArrowRight') act('want'); else if (e.key === 'ArrowLeft') act('nope'); else if (e.key === 'ArrowUp') { e.preventDefault(); act('seen'); } });
+addEventListener('keydown', e => { if (e.key === 'Escape') { closeGrid(); $('drawer').classList.remove('on'); closeTrailer(); return; } if (introOn || $('grid').classList.contains('on')) return; if (e.key === 'ArrowRight') { e.preventDefault(); goToPick(curIdx() + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); goToPick(curIdx() - 1); } });
 // drawer
 function paintDrawer() {
   const items = Object.entries(store.map).filter(([id, v]) => v && FILMMAP[id]).sort((a, b) => (b[1].at || 0) - (a[1].at || 0));
@@ -1029,12 +1098,7 @@ function paintDrawer() {
 }
 $('wlBtn').addEventListener('click', () => { paintDrawer(); $('drawer').classList.add('on'); });
 $('dClose').addEventListener('click', () => $('drawer').classList.remove('on'));
-$('dBody').addEventListener('click', e => { const tb = e.target.closest('button[data-trailer]'); if (tb) { playTrailer(FILMMAP[tb.dataset.trailer]); return; } const b = e.target.closest('button[data-undo]'); if (b) { setSwipe(b.dataset.undo, null); toast('Removed — it will show up again next visit'); } });
-// touch swipe on the poster (left / right)
-let sw = null;
-addEventListener('touchstart', e => { if (!ui.classList.contains('show-hold') || e.target.closest('#panel, .drawer, .top')) { sw = null; return; } const t = e.touches[0]; sw = { x: t.clientX, y: t.clientY, dx: 0 }; }, { passive: true });
-addEventListener('touchmove', e => { if (!sw) return; const t = e.touches[0]; sw.dx = t.clientX - sw.x; const dy = t.clientY - sw.y; if (Math.abs(dy) > Math.abs(sw.dx) * 1.2) { sw = null; $('stamp').style.opacity = 0; return; } if (Math.abs(sw.dx) > 20) stampShow(sw.dx > 0 ? 'want' : 'nope', Math.min(Math.abs(sw.dx) / 140, 1)); }, { passive: true });
-addEventListener('touchend', () => { if (!sw) return; const dx = sw.dx; sw = null; if (Math.abs(dx) > 110) act(dx > 0 ? 'want' : 'nope'); else $('stamp').style.opacity = 0; });
+$('dBody').addEventListener('click', e => { const tb = e.target.closest('button[data-trailer]'); if (tb) { playTrailer(FILMMAP[tb.dataset.trailer]); return; } const b = e.target.closest('button[data-undo]'); if (b) { setSwipe(b.dataset.undo, null); toast('Removed — it\u2019s back in your picks next visit'); } });
 onStoreChange();
 
 /* =============== SOUND =============== */
@@ -1096,6 +1160,29 @@ addEventListener('touchstart', e => { const t = e.touches[0]; drag = [t.clientX,
 addEventListener('touchmove', e => { const t = e.touches[0]; if (drag) dragOff.set((t.clientX - drag[0]) / innerWidth, (t.clientY - drag[1]) / innerHeight); }, { passive: true });
 addEventListener('touchend', () => { drag = null; });
 const ray = new THREE.Raycaster();
+
+/* =============== CLICK A POSTER ON THE WALL =============== */
+const instToId = {}; for (const [id, i] of Object.entries(slotIdx)) instToId[i] = id;
+const SEEDIDS = new Set(SEEDS.map(s => s.id));
+let downAt = null;
+canvas.addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; });
+canvas.addEventListener('pointerup', e => {
+  if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 10) return; downAt = null;
+  if (introOn || ui.classList.contains('show-hold')) return;
+  const ndc = new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  ray.setFromCamera(ndc, camera); const hit = ray.intersectObject(wall); if (!hit.length) return;
+  const id = instToId[hit[0].instanceId];
+  if (id && FILMMAP[id]) {
+    let i = reel.findIndex(f => f.id === id);
+    if (i < 0) {
+      if (hiddenAtLoad.has(id)) { toast(`You sorted ${FILMMAP[id].title} earlier — open ♥ to undo`); return; }
+      cat = 'all'; pace = 'any'; typ = 'all'; ['cat', 'pace', 'typ'].forEach(g => $(g).querySelectorAll('button').forEach((b, k) => b.classList.toggle('on', k === 0)));
+      buildReel(); sizeScroll(); i = reel.findIndex(f => f.id === id);
+    }
+    if (i >= 0) goToPick(i);
+  } else if (id && SEEDIDS.has(id)) toast(`You loved ${SEEDS.find(s => s.id === id).title} — it\u2019s shaping your picks`);
+  else toast('Trending this week — not one of your picks');
+});
 
 /* =============== RESIZE =============== */
 let shiftX = 0, shiftY = 0;
@@ -1303,6 +1390,7 @@ function frame() {
   if (film) { film.why.forEach(([sid]) => hiT[slotIdx[sid]] = Math.sin(Math.PI * clamp(d * 1.3, 0, 1)) * (1 - sh)); hiT[slotIdx[film.id]] = 2; }
   const endA = introOn ? 0 : ss(raw, ANA + n - .1, ANA + n + .2);
   if (endA > 0) reel.forEach(f => hiT[slotIdx[f.id]] = 2 * endA);
+  if (!film && !introOn && ana < .05 && endA < .05) reel.forEach(f => hiT[slotIdx[f.id]] = .45 + .2 * Math.sin(t * 2 + slotIdx[f.id]));
   let hoverIdx = -1;
   if (!film && !introOn && !isMobile && mouseNDC.x < 5) { ray.setFromCamera(mouseNDC, camera); const hit = ray.intersectObject(wall); if (hit.length) hoverIdx = hit[0].instanceId; }
   const hideIdx = film && (d > .9 || sh > 0) && sh < .999 ? slotIdx[film.id] : -1;
@@ -1373,7 +1461,11 @@ function frame() {
   }
   for (let k = pk; k < pathPool.length; k++) pathPool[k].style.opacity = 0;
   if (film && d > .05 && d < .9) { poseOf(slotIdx[film.id], P, Nn, Q); tmp.set(0, -PH / 2 - .25, 0).applyQuaternion(Q).add(P); const [x, y] = toScreen(tmp); pickTag.textContent = `MATCH ${film.m}% · LOCKING ON`; pickTag.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%)`; pickTag.style.opacity = Math.sin(Math.PI * d / .9); }
-  else pickTag.style.opacity = 0;
+  else if (!film && !introOn && hoverIdx >= 0 && instToId[hoverIdx] && FILMMAP[instToId[hoverIdx]]) {
+    const hf = FILMMAP[instToId[hoverIdx]]; poseOf(hoverIdx, P, Nn, Q); tmp.set(0, -PH / 2 - .3, 0).applyQuaternion(Q).add(P); const [x, y] = toScreen(tmp);
+    pickTag.textContent = `${hf.title.toUpperCase()} · ${hf.m}% · CLICK TO OPEN`; pickTag.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%)`; pickTag.style.opacity = 1;
+  } else pickTag.style.opacity = 0;
+  canvas.style.cursor = !film && hoverIdx >= 0 && instToId[hoverIdx] && FILMMAP[instToId[hoverIdx]] ? 'pointer' : '';
   if (film && fi !== lastFilmIdx) { fillPanel(fi); lastFilmIdx = fi; }
   ui.classList.toggle('show-hold', !!hold);
   ui.classList.toggle('intro', introOn);

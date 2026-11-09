@@ -63,28 +63,33 @@ for (const it of catalog) {
   if (!pick) { console.warn('Not found:', it.title); continue; }
   const d = await details(kind, pick.id);
   if (!d) continue;
-  items[it.id] = d; used.add(`${kind}:${pick.id}`); tmdbOf[it.id] = { kind, id: pick.id };
+  items[it.id] = d; used.add(`${kind}:${pick.id}`); tmdbOf[it.id] = { kind, id: pick.id, lang: it.lang };
   console.log('✓', it.title, '→', d.title);
 }
 
 // 2. Fresh feed
 const LOVED = catalog.filter(c => c.loved).map(c => c.id);
-const LIKED_GENRES = new Set([27, 53, 80, 9648, 28, 12, 35, 10759, 10765, 878]);   // horror, thriller, crime, mystery, action, adventure, comedy, sci-fi
+const LIKED_GENRES = new Set([27, 53, 80, 9648, 28, 12, 10759, 10765, 878]);   // comedy is handled via same-industry matches   // horror, thriller, crime, mystery, action, adventure, comedy, sci-fi
 const LANGS = new Set(['en', 'hi', 'ta', 'te', 'ml', 'kn', 'ko', 'es', 'de', 'ja']);
 const cand = new Map();
-const add = (kind, r, from, w) => {
-  if (!r.poster_path || r.adult || (r.vote_count || 0) < 150 || !LANGS.has(r.original_language)) return;
+const BAD = new Set([10751, 10770, 16, 99, 10762, 10764, 10766, 10767]);   // family, TV movie, animation, documentary, kids, reality, soap, talk
+const add = (kind, r, from, w, seedLang) => {
+  const g = r.genre_ids || [];
+  if (!r.poster_path || r.adult || (r.vote_count || 0) < 250 || (r.vote_average || 0) < 6.4 || !LANGS.has(r.original_language)) return;
+  if (g.some(x => BAD.has(x))) return;
+  // must share a genre they like, or come from the same film industry as the title they loved
+  if (!g.some(x => LIKED_GENRES.has(x)) && r.original_language !== seedLang) return;
   const k = `${kind}:${r.id}`; if (used.has(k)) return;
   const c = cand.get(k) || { kind, id: r.id, score: 0, from: new Set(), src: 'rec', vote: r.vote_average };
   c.score += w; if (from) c.from.add(from); cand.set(k, c);
 };
 for (const sid of LOVED) {
   const t = tmdbOf[sid]; if (!t) continue;
-  for (const r of (await api(`/${t.kind}/${t.id}/recommendations`))?.results || []) add(t.kind, r, sid, 1 + (r.vote_average || 0) / 10);
+  for (const r of (await api(`/${t.kind}/${t.id}/recommendations`))?.results || []) add(t.kind, r, sid, 1 + (r.vote_average || 0) / 10, t.lang);
 }
 for (const kind of ['movie', 'tv']) {
   for (const r of (await api(`/trending/${kind}/week`))?.results || []) {
-    if ((r.genre_ids || []).some(g => LIKED_GENRES.has(g)) && (r.vote_average || 0) >= 6.5) { add(kind, r, null, 2.2); const c = cand.get(`${kind}:${r.id}`); if (c && !c.from.size) c.src = 'trend'; }
+    if ((r.genre_ids || []).some(g => LIKED_GENRES.has(g)) && (r.vote_average || 0) >= 6.5) { add(kind, r, null, 2.2, null); const c = cand.get(`${kind}:${r.id}`); if (c && !c.from.size) c.src = 'trend'; }
   }
 }
 const ranked = [...cand.values()].map(c => ({ ...c, rank: c.from.size * 2 + c.score + (c.vote || 0) * .4 })).sort((a, b) => b.rank - a.rank);

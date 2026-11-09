@@ -285,7 +285,8 @@
   "year": 2018,
   "lang": "kn",
   "type": "movie",
-  "q": "K.G.F Chapter 1"
+  "q": "K.G.F Chapter 1",
+  "loved": true
  },
  {
   "id": "inter",
@@ -293,7 +294,8 @@
   "year": 2014,
   "lang": "en",
   "type": "movie",
-  "q": "Interstellar"
+  "q": "Interstellar",
+  "loved": true
  },
  {
   "id": "quietplace",
@@ -301,7 +303,8 @@
   "year": 2018,
   "lang": "en",
   "type": "movie",
-  "q": "A Quiet Place"
+  "q": "A Quiet Place",
+  "loved": true
  },
  {
   "id": "hereditary",
@@ -309,7 +312,8 @@
   "year": 2018,
   "lang": "en",
   "type": "movie",
-  "q": "Hereditary"
+  "q": "Hereditary",
+  "loved": true
  },
  {
   "id": "smile",
@@ -317,7 +321,8 @@
   "year": 2022,
   "lang": "en",
   "type": "movie",
-  "q": "Smile"
+  "q": "Smile",
+  "loved": true
  },
  {
   "id": "underwater",
@@ -325,7 +330,8 @@
   "year": 2020,
   "lang": "en",
   "type": "movie",
-  "q": "Underwater"
+  "q": "Underwater",
+  "loved": true
  },
  {
   "id": "shallows",
@@ -333,7 +339,8 @@
   "year": 2016,
   "lang": "en",
   "type": "movie",
-  "q": "The Shallows"
+  "q": "The Shallows",
+  "loved": true
  },
  {
   "id": "weapons",
@@ -341,7 +348,8 @@
   "year": 2025,
   "lang": "en",
   "type": "movie",
-  "q": "Weapons"
+  "q": "Weapons",
+  "loved": true
  },
  {
   "id": "nosferatu",
@@ -349,7 +357,8 @@
   "year": 2024,
   "lang": "en",
   "type": "movie",
-  "q": "Nosferatu"
+  "q": "Nosferatu",
+  "loved": true
  },
  {
   "id": "dracula",
@@ -357,7 +366,8 @@
   "year": 2014,
   "lang": "en",
   "type": "movie",
-  "q": "Dracula Untold"
+  "q": "Dracula Untold",
+  "loved": true
  },
  {
   "id": "28yl",
@@ -365,7 +375,8 @@
   "year": 2025,
   "lang": "en",
   "type": "movie",
-  "q": "28 Years Later"
+  "q": "28 Years Later",
+  "loved": true
  },
  {
   "id": "extraction",
@@ -373,7 +384,8 @@
   "year": 2020,
   "lang": "en",
   "type": "movie",
-  "q": "Extraction"
+  "q": "Extraction",
+  "loved": true
  },
  {
   "id": "babydriver",
@@ -381,7 +393,8 @@
   "year": 2017,
   "lang": "en",
   "type": "movie",
-  "q": "Baby Driver"
+  "q": "Baby Driver",
+  "loved": true
  },
  {
   "id": "topgun",
@@ -389,7 +402,8 @@
   "year": 2022,
   "lang": "en",
   "type": "movie",
-  "q": "Top Gun: Maverick"
+  "q": "Top Gun: Maverick",
+  "loved": true
  },
  {
   "id": "mi4",
@@ -397,7 +411,8 @@
   "year": 2011,
   "lang": "en",
   "type": "movie",
-  "q": "Mission Impossible Ghost Protocol"
+  "q": "Mission Impossible Ghost Protocol",
+  "loved": true
  },
  {
   "id": "thudarum",
@@ -405,7 +420,8 @@
   "year": 2025,
   "lang": "ml",
   "type": "movie",
-  "q": "Thudarum"
+  "q": "Thudarum",
+  "loved": true
  },
  {
   "id": "evaru",
@@ -413,7 +429,8 @@
   "year": 2019,
   "lang": "te",
   "type": "movie",
-  "q": "Evaru"
+  "q": "Evaru",
+  "loved": true
  },
  {
   "id": "dragon",
@@ -421,7 +438,8 @@
   "year": 2025,
   "lang": "ta",
   "type": "movie",
-  "q": "Dragon"
+  "q": "Dragon",
+  "loved": true
  },
  {
   "id": "arya2",
@@ -429,7 +447,8 @@
   "year": 2009,
   "lang": "te",
   "type": "movie",
-  "q": "Arya 2"
+  "q": "Arya 2",
+  "loved": true
  },
  {
   "id": "mahaan",
@@ -437,7 +456,8 @@
   "year": 2022,
   "lang": "ta",
   "type": "movie",
-  "q": "Mahaan"
+  "q": "Mahaan",
+  "loved": true
  },
  {
   "id": "horriblebosses",
@@ -445,7 +465,8 @@
   "year": 2011,
   "lang": "en",
   "type": "movie",
-  "q": "Horrible Bosses"
+  "q": "Horrible Bosses",
+  "loved": true
  },
  {
   "id": "rickystanicky",
@@ -453,7 +474,8 @@
   "year": 2024,
   "lang": "en",
   "type": "movie",
-  "q": "Ricky Stanicky"
+  "q": "Ricky Stanicky",
+  "loved": true
  },
  {
   "id": "wardogs",
@@ -461,7 +483,8 @@
   "year": 2016,
   "lang": "en",
   "type": "movie",
-  "q": "War Dogs"
+  "q": "War Dogs",
+  "loved": true
  },
  {
   "id": "whyhim",
@@ -469,7 +492,8 @@
   "year": 2016,
   "lang": "en",
   "type": "movie",
-  "q": "Why Him?"
+  "q": "Why Him?",
+  "loved": true
  },
  {
   "id": "chhichhore",
@@ -477,7 +501,8 @@
   "year": 2019,
   "lang": "hi",
   "type": "movie",
-  "q": "Chhichhore"
+  "q": "Chhichhore",
+  "loved": true
  },
  {
   "id": "superboys",
@@ -485,7 +510,8 @@
   "year": 2025,
   "lang": "hi",
   "type": "movie",
-  "q": "Superboys of Malegaon"
+  "q": "Superboys of Malegaon",
+  "loved": true
  },
  {
   "id": "tholiprema",
@@ -493,7 +519,8 @@
   "year": 2018,
   "lang": "te",
   "type": "movie",
-  "q": "Tholi Prema"
+  "q": "Tholi Prema",
+  "loved": true
  },
  {
   "id": "rabne",
@@ -501,7 +528,8 @@
   "year": 2008,
   "lang": "hi",
   "type": "movie",
-  "q": "Rab Ne Bana Di Jodi"
+  "q": "Rab Ne Bana Di Jodi",
+  "loved": true
  },
  {
   "id": "knivesout",
@@ -509,7 +537,8 @@
   "year": 2019,
   "lang": "en",
   "type": "movie",
-  "q": "Knives Out"
+  "q": "Knives Out",
+  "loved": true
  },
  {
   "id": "13lives",
@@ -517,7 +546,8 @@
   "year": 2022,
   "lang": "en",
   "type": "movie",
-  "q": "13 Lives"
+  "q": "13 Lives",
+  "loved": true
  },
  {
   "id": "from",
@@ -525,7 +555,8 @@
   "year": 2022,
   "lang": "en",
   "type": "tv",
-  "q": "From"
+  "q": "From",
+  "loved": true
  },
  {
   "id": "widowsbay",
@@ -533,7 +564,8 @@
   "year": null,
   "lang": "en",
   "type": "tv",
-  "q": "Widow's Bay"
+  "q": "Widow's Bay",
+  "loved": true
  },
  {
   "id": "3bp",
@@ -541,7 +573,8 @@
   "year": 2024,
   "lang": "en",
   "type": "tv",
-  "q": "3 Body Problem"
+  "q": "3 Body Problem",
+  "loved": true
  },
  {
   "id": "dark",
@@ -549,7 +582,8 @@
   "year": 2017,
   "lang": "de",
   "type": "tv",
-  "q": "Dark"
+  "q": "Dark",
+  "loved": true
  },
  {
   "id": "moneyheist",
@@ -557,6 +591,7 @@
   "year": 2017,
   "lang": "es",
   "type": "tv",
-  "q": "Money Heist"
+  "q": "Money Heist",
+  "loved": true
  }
 ]

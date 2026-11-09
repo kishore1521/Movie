@@ -1,6 +1,8 @@
-// Runs inside GitHub Actions. Looks up every title in site/data/catalog.json on TMDB and
-// writes site/data/tmdb.json (poster + still paths, trailer key, TMDB score).
-// The API key comes from the TMDB_API_KEY repository secret and is never written to the site.
+// Runs inside GitHub Actions (on every push and every Monday).
+// 1. Looks up every title in site/data/catalog.json on TMDB.
+// 2. Builds a "fresh" feed: titles TMDB recommends for the films and shows Kris & Prashanth loved,
+//    plus this week's trending titles in their favourite genres and languages.
+// Writes site/data/tmdb.json. The API key comes from the TMDB_API_KEY repository secret and never reaches the site.
 import { readFile, writeFile } from 'node:fs/promises';
 
 const KEY = process.env.TMDB_API_KEY;
@@ -9,7 +11,7 @@ const catalog = JSON.parse(await readFile('site/data/catalog.json', 'utf8'));
 
 if (!KEY) {
   console.warn('TMDB_API_KEY secret is not set — publishing without posters.');
-  await writeFile(OUT, JSON.stringify({ updated: null, items: {}, fillers: [] }));
+  await writeFile(OUT, JSON.stringify({ updated: null, items: {}, fillers: [], fresh: [] }));
   process.exit(0);
 }
 
@@ -25,7 +27,32 @@ async function api(path, params = {}) {
   return null;
 }
 
-const items = {}, used = new Set();
+// Everything the site shows for one title
+async function details(kind, id) {
+  const d = await api(`/${kind}/${id}`, { append_to_response: 'images,videos,credits', include_image_language: 'en,null', include_video_language: 'en' });
+  if (!d) return null;
+  const byVotes = (a, b) => b.vote_average - a.vote_average || b.vote_count - a.vote_count;
+  const backdrops = (d.images?.backdrops || []).sort(byVotes).slice(0, 12).map(b => b.file_path);
+  if (!backdrops.length && d.backdrop_path) backdrops.push(d.backdrop_path);
+  const posters = (d.images?.posters || []).sort(byVotes).map(p => p.file_path).filter(p => p !== d.poster_path).slice(0, 8);
+  const logo = (d.images?.logos || []).filter(l => l.iso_639_1 === 'en').sort(byVotes)[0]?.file_path || null;
+  const yt = (d.videos?.results || []).filter(v => v.site === 'YouTube');
+  const order = { Trailer: 0, Teaser: 1, Clip: 2, Featurette: 3, 'Behind the Scenes': 4 };
+  const videos = yt.filter(v => v.type in order).sort((a, b) => order[a.type] - order[b.type] || (b.official - a.official)).slice(0, 8).map(v => ({ key: v.key, name: v.name, type: v.type }));
+  const tr = yt.find(v => v.type === 'Trailer' && v.official) || yt.find(v => v.type === 'Trailer') || yt.find(v => v.type === 'Teaser') || yt[0];
+  const cast = (d.credits?.cast || []).slice(0, 10).map(c => ({ name: c.name, role: c.character, photo: c.profile_path })).filter(c => c.photo);
+  const director = kind === 'movie' ? (d.credits?.crew || []).filter(c => c.job === 'Director').map(c => c.name).slice(0, 2).join(' & ')
+    : (d.created_by || []).map(c => c.name).slice(0, 2).join(' & ');
+  return {
+    tmdb: d.id, type: kind, title: d.title || d.name, poster: d.poster_path, backdrops, posters, logo, trailer: tr?.key || null, videos, cast, director,
+    overview: d.overview || '', vote: d.vote_count > 20 ? Math.round(d.vote_average * 10) / 10 : null, votes: d.vote_count,
+    year: (d.release_date || d.first_air_date || '').slice(0, 4), lang: d.original_language, genres: (d.genres || []).map(g => g.id),
+    runtime: d.runtime || d.episode_run_time?.[0] || null, seasons: d.number_of_seasons || null,
+  };
+}
+
+// 1. The hand-picked catalog
+const items = {}, used = new Set(), tmdbOf = {};
 for (const it of catalog) {
   const kind = it.type === 'tv' ? 'tv' : 'movie';
   const yearKey = kind === 'tv' ? 'first_air_date_year' : 'year';
@@ -34,19 +61,45 @@ for (const it of catalog) {
   if (!list.length) list = (await api(`/search/${kind}`, { query: it.q, include_adult: 'false' }))?.results || [];
   const pick = list.find(r => r.original_language === it.lang) || list[0];
   if (!pick) { console.warn('Not found:', it.title); continue; }
-  const d = await api(`/${kind}/${pick.id}`, { append_to_response: 'images,videos', include_image_language: 'en,null', include_video_language: 'en' });
+  const d = await details(kind, pick.id);
   if (!d) continue;
-  const backdrops = (d.images?.backdrops || []).sort((a, b) => b.vote_average - a.vote_average).slice(0, 6).map(b => b.file_path);
-  if (!backdrops.length && d.backdrop_path) backdrops.push(d.backdrop_path);
-  const vids = (d.videos?.results || []).filter(v => v.site === 'YouTube');
-  const tr = vids.find(v => v.type === 'Trailer' && v.official) || vids.find(v => v.type === 'Trailer') || vids.find(v => v.type === 'Teaser') || vids[0];
-  items[it.id] = { tmdb: pick.id, type: kind, title: d.title || d.name, poster: d.poster_path, backdrops, trailer: tr?.key || null,
-    vote: d.vote_count > 20 ? Math.round(d.vote_average * 10) / 10 : null };
-  used.add(`${kind}:${pick.id}`);
-  console.log('✓', it.title, '→', items[it.id].title);
+  items[it.id] = d; used.add(`${kind}:${pick.id}`); tmdbOf[it.id] = { kind, id: pick.id };
+  console.log('✓', it.title, '→', d.title);
 }
 
-// Popular titles to fill the rest of the poster wall
+// 2. Fresh feed
+const LOVED = catalog.filter(c => c.loved).map(c => c.id);
+const LIKED_GENRES = new Set([27, 53, 80, 9648, 28, 12, 35, 10759, 10765, 878]);   // horror, thriller, crime, mystery, action, adventure, comedy, sci-fi
+const LANGS = new Set(['en', 'hi', 'ta', 'te', 'ml', 'kn', 'ko', 'es', 'de', 'ja']);
+const cand = new Map();
+const add = (kind, r, from, w) => {
+  if (!r.poster_path || r.adult || (r.vote_count || 0) < 150 || !LANGS.has(r.original_language)) return;
+  const k = `${kind}:${r.id}`; if (used.has(k)) return;
+  const c = cand.get(k) || { kind, id: r.id, score: 0, from: new Set(), src: 'rec', vote: r.vote_average };
+  c.score += w; if (from) c.from.add(from); cand.set(k, c);
+};
+for (const sid of LOVED) {
+  const t = tmdbOf[sid]; if (!t) continue;
+  for (const r of (await api(`/${t.kind}/${t.id}/recommendations`))?.results || []) add(t.kind, r, sid, 1 + (r.vote_average || 0) / 10);
+}
+for (const kind of ['movie', 'tv']) {
+  for (const r of (await api(`/trending/${kind}/week`))?.results || []) {
+    if ((r.genre_ids || []).some(g => LIKED_GENRES.has(g)) && (r.vote_average || 0) >= 6.5) { add(kind, r, null, 2.2); const c = cand.get(`${kind}:${r.id}`); if (c && !c.from.size) c.src = 'trend'; }
+  }
+}
+const ranked = [...cand.values()].map(c => ({ ...c, rank: c.from.size * 2 + c.score + (c.vote || 0) * .4 })).sort((a, b) => b.rank - a.rank);
+const fresh = [];
+let tv = 0;
+for (const c of ranked) {
+  if (fresh.length >= 40) break;
+  if (c.kind === 'tv' && tv >= 14) continue;
+  const d = await details(c.kind, c.id); if (!d || !d.poster) continue;
+  const id = `x${c.kind[0]}${c.id}`;
+  items[id] = { ...d, fresh: true, src: c.src, from: [...c.from].slice(0, 3), rank: Math.round(c.rank * 10) / 10 };
+  fresh.push(id); used.add(`${c.kind}:${c.id}`); if (c.kind === 'tv') tv++;
+}
+
+// 3. Popular posters to fill the rest of the wall
 const fillers = [];
 for (const [kind, page] of [['movie', 1], ['movie', 2], ['tv', 1], ['movie', 3]]) {
   for (const r of (await api(`/trending/${kind}/week`, { page }))?.results || []) {
@@ -54,5 +107,5 @@ for (const [kind, page] of [['movie', 1], ['movie', 2], ['tv', 1], ['movie', 3]]
   }
 }
 
-await writeFile(OUT, JSON.stringify({ updated: new Date().toISOString(), items, fillers: fillers.slice(0, 40) }));
-console.log(`Wrote ${Object.keys(items).length}/${catalog.length} titles and ${Math.min(fillers.length, 40)} wall fillers.`);
+await writeFile(OUT, JSON.stringify({ updated: new Date().toISOString(), items, fresh, fillers: fillers.slice(0, 30) }));
+console.log(`Wrote ${Object.keys(items).length - fresh.length}/${catalog.length} catalog titles, ${fresh.length} fresh picks, ${Math.min(fillers.length, 30)} wall fillers.`);

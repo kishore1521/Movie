@@ -288,7 +288,7 @@
   <div class="empty" id="empty">Nothing left with these filters — try another genre or pace.</div>
   <div class="stamp" id="stamp"></div>
   <div class="toast" id="toast"></div>
-  <div class="tmodal" id="tmodal"><div class="tbox"><iframe id="tframe" title="Trailer" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div><button id="tclose">✕ Close</button></div>
+  <div class="tmodal" id="tmodal"><div class="tbox"><iframe id="tframe" title="Trailer" allow="autoplay; encrypted-media; picture-in-picture; fullscreen"></iframe></div><button id="tclose">✕ Close</button></div>
   <div class="drawer" id="drawer"><div class="dhead"><h3>Your lists</h3><button id="dClose">✕</button></div><div id="dBody"></div></div>
 </div>
 
@@ -425,45 +425,45 @@ const TOPS = ['A FILM BY NOBODY YET','COMING SOON','ONE NIGHT ONLY','NOW SHOWING
   SEEDS.forEach(s => { s.kind = KINDS[Math.floor(R() * 8)]; s.sty = Math.floor(R() * 8); s.font = ['anton','unb','play','syne'][Math.floor(R() * 4)]; s.pal = PALS[Math.floor(R() * PALS.length)]; s.sun = [.25 + R() * .5, .2 + R() * .3]; s.top = 'ONE YOU LOVED'; }); }
 
 // --- TV shows (matched to From, Widow's Bay, 3 Body Problem, Dark, Money Heist) ---
-const S = (id, title, year, lang, span, cat, genre, pace, imdb, rtc, rta, m, why, take, buzz, art) => ({ ...F(id, title, year, lang, null, cat, genre, pace, imdb, rtc, rta, null, m, why, take, buzz, art), type: 'tv', span });
+const SHOW = (id, title, year, lang, span, cat, genre, pace, imdb, rtc, rta, m, why, take, buzz, art) => ({ ...F(id, title, year, lang, null, cat, genre, pace, imdb, rtc, rta, null, m, why, take, buzz, art), type: 'tv', span });
 FILMS.push(
-  S('severance','Severance',2022,'English','2 seasons','thriller','Sci-fi · Mystery','slow',8.7,97,null,95,
+  SHOW('severance','Severance',2022,'English','2 seasons','thriller','Sci-fi · Mystery','slow',8.7,97,null,95,
     [['dark','A puzzle-box mystery where every answer opens a bigger question'],['from','People trapped in a system they can’t explain']],
     'The best mystery box on TV right now.','Critics put season 1 in the high 90s; season 2 opened at a perfect 100%.',
     { kind:'monolith', sty:3, font:'syne', pal:['#9fd0ff','#04080f','#ffffff'], sun:[.5,.3] }),
-  S('1899','1899',2022,'Multilingual','1 season','horror','Mystery · Horror','slow',7.3,79,76,94,
+  SHOW('1899','1899',2022,'Multilingual','1 season','horror','Mystery · Horror','slow',7.3,79,76,94,
     [['dark','Same creators as Dark'],['from','Stranded somewhere that makes no sense']],
     'Only one season — it was cancelled.','Most fans say it’s not quite Dark, but still a really good watch.',
     { kind:'ridge', sty:3, font:'play', pal:['#6f8f9f','#03070a','#e8dcc0'], sun:[.5,.35] }),
-  S('silo','Silo',2023,'English','3 seasons','thriller','Sci-fi · Mystery','medium',null,88,null,93,
+  SHOW('silo','Silo',2023,'English','3 seasons','thriller','Sci-fi · Mystery','medium',null,88,null,93,
     [['from','A sealed-off community full of secrets'],['3bp','Big, slow-burn sci-fi mystery']],
     'Gets better every season.','Season 1 landed at 88% with critics; season 3 opened with a perfect score.',
     { kind:'tower', sty:3, font:'unb', pal:['#c9a96a','#070605','#fff2d0'], sun:[.5,.25] }),
-  S('kingdom','Kingdom',2019,'Korean','2 seasons + special','horror','Horror · Period · Zombie','fast',8.3,98,92,93,
+  SHOW('kingdom','Kingdom',2019,'Korean','2 seasons + special','horror','Horror · Period · Zombie','fast',8.3,98,92,93,
     [['from','Relentless survival horror with no safe place'],['28yl','Fast, vicious infected — in Joseon-era Korea']],
     'Possibly the best zombie show ever made.','98% with critics and 92% with audiences on Rotten Tomatoes.',
     { kind:'tower', sty:2, font:'anton', pal:['#c7352a','#080303','#ffd38a'], sun:[.5,.3] }),
-  S('hillhouse','The Haunting of Hill House',2018,'English','Miniseries','horror','Horror · Family drama','slow',8.5,93,91,92,
+  SHOW('hillhouse','The Haunting of Hill House',2018,'English','Miniseries','horror','Horror · Family drama','slow',8.5,93,91,92,
     [['from','Supernatural dread that slowly closes in'],['hereditary','Family grief turned into horror']],
     'Scary and devastating in equal measure.','Critics and audiences both above 90% on Rotten Tomatoes.',
     { kind:'house', sty:3, font:'play', pal:['#7f8fa0','#05060a','#e6eef8'], sun:[.6,.3] }),
-  S('squidgame','Squid Game',2021,'Korean','3 seasons','thriller','Thriller · Survival','fast',null,94,null,91,
+  SHOW('squidgame','Squid Game',2021,'Korean','3 seasons','thriller','Thriller · Survival','fast',null,94,null,91,
     [['moneyheist','Ordinary people in an impossible high-stakes game'],['from','Trapped, with no way out but forward']],
     'Season 1 is the essential one.','Season 1 is widely called a masterpiece; later seasons split fans.',
     { kind:'duo', sty:5, font:'unb', pal:['#ff2e7a','#05040a','#2ee6a8'], sun:[.5,.45] }),
-  S('darkmatter','Dark Matter',2024,'English','2 seasons','thriller','Sci-fi · Thriller','medium',7.7,82,null,90,
+  SHOW('darkmatter','Dark Matter',2024,'English','2 seasons','thriller','Sci-fi · Thriller','medium',7.7,82,null,90,
     [['3bp','Big-idea physics sci-fi'],['dark','Alternate versions of yourself and the life you could have had']],
     'Parallel worlds, played straight.','Critics praise Joel Edgerton’s dual role; the finale divides people.',
     { kind:'planet', sty:1, font:'syne', pal:['#5a8cff','#020410','#ffffff'], sun:[.6,.25] }),
-  S('yellowjackets','Yellowjackets',2021,'English','3 seasons','thriller','Survival · Mystery','medium',7.7,100,null,89,
+  SHOW('yellowjackets','Yellowjackets',2021,'English','3 seasons','thriller','Survival · Mystery','medium',7.7,100,null,89,
     [['from','Survival in the woods — and something else out there'],['dark','Two timelines slowly revealing what happened']],
     'Season 1 scored a perfect 100%.','Viewers call season 1 gripping; some say the pace sags in later seasons.',
     { kind:'ridge', sty:3, font:'anton', pal:['#5f8f5f','#030803','#f2e6b0'], sun:[.5,.3] }),
-  S('paatallok','Paatal Lok',2020,'Hindi','2 seasons','thriller','Crime · Thriller','medium',8.2,null,null,89,
+  SHOW('paatallok','Paatal Lok',2020,'Hindi','2 seasons','thriller','Crime · Thriller','medium',8.2,null,null,89,
     [['dark','A layered mystery where every suspect has a past'],['thudarum','Gritty, grounded Indian crime drama']],
     'One of India’s best crime shows.','Reviewers call it a tight thriller where every episode ends on a cliffhanger.',
     { kind:'smoke', sty:2, font:'anton', pal:['#c98a3a','#070403','#ffcf7a'], sun:[.5,.5] }),
-  S('asur','Asur',2020,'Hindi','2 seasons','thriller','Crime · Mythology','medium',8.5,null,null,88,
+  SHOW('asur','Asur',2020,'Hindi','2 seasons','thriller','Crime · Mythology','medium',8.5,null,null,88,
     [['evaru','A twisty Indian thriller full of reversals'],['dark','Big mythic ideas inside a mystery']],
     'Serial killer meets mythology.','Season 2 became the most popular Indian show on IMDb worldwide when it dropped.',
     { kind:'monolith', sty:4, font:'syne', pal:['#ff4b4b','#06030a','#5aa0ff'], sun:[.5,.4] }),

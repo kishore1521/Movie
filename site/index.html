@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Next Frame — prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;500;800&family=Anton&family=Playfair+Display:ital,wght@1,700&family=Syne:wght@800&family=JetBrains+Mono:wght@300;400;600&family=Space+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --fg:#eef3f6; --dim:rgba(238,243,246,.55); --faint:rgba(238,243,246,.13); --cy:#5ef0ff; --accent:#5ef0ff; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { background:#04060a; color:var(--fg); }
+  body { font-family:'Space Grotesk', system-ui, sans-serif; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+  #scroll { height:1200vh; }
+  canvas#gl { position:fixed; inset:0; width:100vw; height:100vh; display:block; }
+  .ui { position:fixed; inset:0; pointer-events:none; z-index:2; }
+  .mono { font-family:'JetBrains Mono', ui-monospace, monospace; }
+  button { font:inherit; }
+
+  .top { position:absolute; top:0; left:0; right:0; padding:18px 24px; display:flex; justify-content:space-between; align-items:center; gap:14px; }
+  .brand { font-family:'Unbounded', sans-serif; font-weight:500; font-size:15px; letter-spacing:.04em; display:flex; align-items:center; gap:10px; white-space:nowrap; }
+  .brand i { width:18px; height:12px; border:1.5px solid var(--fg); border-radius:2px; position:relative; display:inline-block; }
+  .brand i::after { content:''; position:absolute; inset:2px 5px; background:var(--cy); box-shadow:0 0 10px var(--cy); }
+  .ctrls { display:flex; gap:10px; align-items:center; pointer-events:auto; }
+  .seg { display:flex; align-items:center; gap:2px; border:1px solid var(--faint); border-radius:99px; padding:3px; background:rgba(6,9,14,.55); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+  .seg label { font-family:'JetBrains Mono', monospace; font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--dim); padding:0 6px 0 10px; }
+  .seg button { background:none; border:0; color:var(--dim); font-size:12px; padding:6px 11px; border-radius:99px; cursor:pointer; transition:background .3s, color .3s; white-space:nowrap; }
+  .seg button.on { background:var(--fg); color:#05070b; }
+  .snd { display:flex; align-items:center; gap:8px; color:var(--dim); font-size:12px; padding:7px 13px !important; cursor:pointer; }
+  .snd .bars { display:flex; gap:2px; align-items:flex-end; height:10px; }
+  .snd .bars b { width:2px; height:3px; background:currentColor; }
+  .snd.on { color:var(--fg); } .snd.on .bars b { animation:eq .7s ease-in-out infinite; } .snd.on .bars b:nth-child(2){animation-delay:-.25s} .snd.on .bars b:nth-child(3){animation-delay:-.5s}
+  @keyframes eq { 0%,100%{height:3px} 50%{height:10px} }
+
+  .hero { position:absolute; left:0; right:0; bottom:13vh; text-align:center; padding:0 20px; transition:opacity .8s, transform 1s cubic-bezier(.2,.8,.1,1), filter .8s; }
+  .hero.off { opacity:0; transform:translateY(-30px); filter:blur(10px); }
+  .hero .k { font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.32em; color:var(--cy); text-transform:uppercase; }
+  .hero h1 { font-family:'Unbounded', sans-serif; font-weight:800; font-size:clamp(34px, 6.4vw, 92px); line-height:.98; letter-spacing:-.03em; margin-top:14px; text-shadow:0 10px 60px rgba(0,0,0,.9); }
+  .hero h1 span { color:transparent; -webkit-text-stroke:1.5px var(--fg); }
+  .hero p { margin-top:16px; color:var(--dim); font-size:15px; }
+  .cue { position:absolute; bottom:24px; left:50%; transform:translateX(-50%); font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.3em; color:var(--dim); transition:opacity .5s; }
+
+  .hud { position:absolute; left:24px; bottom:24px; width:min(440px, calc(100vw - 48px)); font-family:'JetBrains Mono', monospace; font-size:12px; line-height:1.9; opacity:0; transition:opacity .5s; background:rgba(4,7,11,.6); border:1px solid var(--faint); border-radius:10px; padding:14px 16px; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+  .hud.show { opacity:1; }
+  .hud h5 { font-size:10px; letter-spacing:.3em; color:var(--cy); font-weight:400; margin-bottom:6px; }
+  .hud div { color:var(--dim); opacity:0; transform:translateX(-8px); transition:.4s; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .hud div.on { opacity:1; transform:none; } .hud div b { color:var(--fg); font-weight:400; }
+
+  .tag { position:absolute; left:0; top:0; font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.12em; padding:4px 8px; border-radius:4px; background:rgba(94,240,255,.14); border:1px solid rgba(94,240,255,.5); color:#cffaff; white-space:nowrap; transform:translate(-50%, -50%); opacity:0; transition:opacity .4s; }
+  .tag.pick { background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.6); color:#fff; }
+  svg#links { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+  svg#links path { fill:none; stroke-width:1.4; }
+  svg#links .base { stroke:rgba(94,240,255,.35); }
+  svg#links .pulse { stroke:var(--cy); stroke-width:2.2; stroke-dasharray:14 320; filter:drop-shadow(0 0 5px var(--cy)); animation:flow 1.6s linear infinite; }
+  @keyframes flow { to { stroke-dashoffset:-334; } }
+  svg#links circle { fill:var(--cy); filter:drop-shadow(0 0 6px var(--cy)); }
+  svg#links text { fill:#05070b; font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:600; text-anchor:middle; dominant-baseline:central; }
+
+  #seeds { position:absolute; left:26px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:22px; }
+  .seed { width:76px; opacity:0; transform:translateX(-14px); transition:opacity .5s, transform .7s cubic-bezier(.2,.8,.1,1); }
+  .seed img { width:76px; height:114px; display:block; border-radius:4px; border:1px solid rgba(94,240,255,.6); box-shadow:0 0 18px rgba(94,240,255,.35); object-fit:cover; }
+  .seed span { display:block; font-family:'JetBrains Mono', monospace; font-size:9px; letter-spacing:.12em; color:var(--cy); margin-top:6px; text-transform:uppercase; }
+  .show-hold .seed { opacity:1; transform:none; } .show-hold .seed:nth-child(2) { transition-delay:.1s; } .show-hold .seed:nth-child(3) { transition-delay:.2s; }
+
+  #panel { position:absolute; right:2.4vw; top:calc(50% + 26px); transform:translateY(-46%); width:min(450px, 37vw); max-height:calc(100vh - 92px); overflow-y:auto; scrollbar-width:none; padding:20px 24px; border-radius:16px; background:rgba(4,6,10,.62); border:1px solid var(--faint); backdrop-filter:blur(16px) saturate(1.2); -webkit-backdrop-filter:blur(16px) saturate(1.2); opacity:0; transition:opacity .5s, transform .8s cubic-bezier(.2,.8,.1,1); }
+  .show-hold #panel { opacity:1; transform:translateY(-50%); }
+  #panel .k { font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:.24em; color:var(--dim); text-transform:uppercase; display:flex; justify-content:space-between; gap:10px; }
+  #panel .k b { color:var(--accent); font-weight:400; }
+  #panel h2 { font-family:'Unbounded', sans-serif; font-weight:800; font-size:clamp(28px, 3.2vw, 46px); line-height:.98; letter-spacing:-.03em; margin-top:10px; }
+  #panel .genre { color:var(--dim); font-size:13px; margin-top:8px; }
+  .matchrow { display:flex; align-items:center; gap:16px; margin-top:14px; }
+  .big { font-family:'Unbounded', sans-serif; font-weight:300; font-size:52px; line-height:.8; letter-spacing:-.04em; color:var(--accent); text-shadow:0 0 30px var(--accent); }
+  .big sup { font-size:22px; vertical-align:top; margin-left:2px; }
+  .matchrow .lbl { font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); line-height:1.6; }
+  .matchrow .lbl em { display:block; font-family:'Space Grotesk', sans-serif; font-style:normal; letter-spacing:0; text-transform:none; font-size:14px; color:var(--fg); margin-top:3px; }
+  .sect { margin-top:13px; padding-top:11px; border-top:1px solid var(--faint); }
+  .sect h4 { font-family:'JetBrains Mono', monospace; font-size:9.5px; letter-spacing:.26em; font-weight:400; color:var(--cy); text-transform:uppercase; margin-bottom:10px; }
+  .why li { list-style:none; display:flex; gap:10px; font-size:13.5px; line-height:1.45; margin-bottom:8px; }
+  .why li i { flex:none; width:18px; height:18px; border-radius:50%; background:var(--cy); color:#05070b; font-style:normal; font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:600; display:flex; align-items:center; justify-content:center; margin-top:1px; box-shadow:0 0 10px var(--cy); }
+  .why li b { font-weight:500; }
+  .why li span { color:var(--dim); }
+  .scores { display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; }
+  .sc { font-family:'JetBrains Mono', monospace; }
+  .sc em { display:block; font-style:normal; font-size:20px; color:var(--fg); }
+  .sc em.na { color:var(--dim); font-size:14px; padding-top:5px; }
+  .sc span { display:block; font-size:9px; letter-spacing:.12em; color:var(--dim); text-transform:uppercase; margin-top:2px; }
+  .sc i { display:block; height:2px; background:var(--faint); margin-top:7px; } .sc i u { display:block; height:100%; width:0; background:var(--fg); transition:width 1s cubic-bezier(.2,.8,.1,1) .2s; }
+  .sc i u.low { background:#ff6a55; } .sc i u.hi { background:#7dffb2; }
+  .pacebox { display:flex; align-items:center; gap:14px; }
+  .segs { display:flex; gap:4px; } .segs b { width:30px; height:6px; border-radius:2px; background:var(--faint); }
+  .segs b.on { background:var(--accent); box-shadow:0 0 8px var(--accent); }
+  .pacebox svg { flex:1; height:22px; } .pacebox path { fill:none; stroke:var(--accent); stroke-width:1.5; }
+  .pacebox .pl { font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.14em; }
+  .reddit { font-size:13px; line-height:1.55; color:#d6e0e6; }
+  .note { margin-top:12px; font-family:'JetBrains Mono', monospace; font-size:9px; letter-spacing:.12em; color:rgba(238,243,246,.3); text-transform:uppercase; }
+
+  .stills { position:fixed; inset:0; z-index:1; pointer-events:none; mix-blend-mode:screen; opacity:0; background-size:280%; filter:contrast(1.3) saturate(1.3); }
+  .endc { position:absolute; left:0; right:0; bottom:14vh; text-align:center; opacity:0; transition:opacity .8s; padding:0 20px; }
+  .endc.show { opacity:1; }
+  .endc h2 { font-family:'Unbounded', sans-serif; font-weight:800; font-size:clamp(30px, 5vw, 64px); letter-spacing:-.03em; }
+  .endc p { margin:14px auto 0; max-width:520px; color:var(--dim); font-size:14px; line-height:1.6; }
+  .loader { position:fixed; inset:0; z-index:9; background:#04060a; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.28em; color:var(--dim); transition:opacity .9s, visibility 0s .9s; }
+  .loader b { display:block; width:180px; height:1px; background:var(--faint); } .loader b u { display:block; height:100%; width:0; background:var(--cy); box-shadow:0 0 8px var(--cy); }
+  .loader.done { opacity:0; visibility:hidden; }
+  .empty { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); color:var(--dim); display:none; font-size:14px; }
+
+  @media (max-width:760px) {
+    .top { flex-direction:column; align-items:stretch; padding:12px 12px 0; gap:9px; }
+    .brand { justify-content:space-between; }
+    .ctrls { overflow-x:auto; scrollbar-width:none; } .ctrls::-webkit-scrollbar { display:none; }
+    .seg label { display:none; } .seg button { padding:6px 9px; font-size:11.5px; }
+    .ctrls .snd { display:none; }
+    #seeds { left:auto; right:12px; top:calc(45vh - 76px); transform:none; flex-direction:row; gap:8px; }
+    .seed { width:40px; } .seed img { width:40px; height:60px; } .seed span { display:none; }
+    #panel { left:0; right:0; top:auto; bottom:0; width:auto; transform:translateY(20px); padding:56px 16px 16px; border:0; border-radius:0; backdrop-filter:none; -webkit-backdrop-filter:none; background:linear-gradient(transparent, rgba(4,6,10,.88) 48px, rgba(4,6,10,.96)); }
+    .show-hold #panel { transform:none; }
+    #panel h2 { font-size:30px; margin-top:6px; }
+    #panel .genre { font-size:12px; margin-top:4px; }
+    .matchrow { margin-top:10px; gap:12px; } .big { font-size:40px; } .big sup { font-size:15px; }
+    .matchrow .lbl em { font-size:12.5px; }
+    .sect { margin-top:10px; padding-top:9px; } .sect h4 { margin-bottom:6px; font-size:9px; }
+    .why li { font-size:12.5px; margin-bottom:4px; line-height:1.35; }
+    .sc em { font-size:16px; } .sc em.na { font-size:12px; padding-top:3px; }
+    .reddit { font-size:12px; line-height:1.45; }
+    .note, .hide-m { display:none; }
+    .hud { left:12px; right:12px; width:auto; bottom:16px; font-size:11px; }
+  }
+  .mobsnd { display:none; }
+  @media (max-width:760px) { .mobsnd { display:flex; } }
+
+  /* ---- gate + intro ---- */
+  body.lock { overflow:hidden; }
+  .gate { position:fixed; inset:0; z-index:8; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; background:radial-gradient(ellipse at 50% 60%, #0b1520 0%, #04060a 60%); transition:opacity .6s, visibility 0s .6s; text-align:center; padding:20px; }
+  .gate.gone { opacity:0; visibility:hidden; }
+  .gate .k { font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.34em; color:var(--cy); }
+  .gate h1 { font-family:'Unbounded', sans-serif; font-weight:800; font-size:clamp(38px, 7vw, 84px); letter-spacing:-.03em; line-height:.95; }
+  .gate p { color:var(--dim); font-size:14px; max-width:380px; line-height:1.6; }
+  .gate .go { pointer-events:auto; position:relative; border:0; cursor:pointer; background:var(--fg); color:#05070b; font-family:'Unbounded', sans-serif; font-weight:500; font-size:14px; letter-spacing:.06em; padding:18px 30px; border-radius:99px; display:flex; align-items:center; gap:12px; box-shadow:0 0 0 0 rgba(94,240,255,.6); animation:ping 2s infinite; }
+  .gate .go::before { content:''; width:0; height:0; border-left:10px solid #05070b; border-top:6px solid transparent; border-bottom:6px solid transparent; }
+  @keyframes ping { 0% { box-shadow:0 0 0 0 rgba(94,240,255,.55); } 100% { box-shadow:0 0 0 26px rgba(94,240,255,0); } }
+  .gate .quiet { background:none; border:0; color:var(--dim); font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.2em; cursor:pointer; text-decoration:underline; text-underline-offset:4px; }
+  #intro { position:fixed; inset:0; z-index:4; pointer-events:none; }
+  #intro .boot { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:.34em; color:var(--cy); opacity:0; transition:opacity .25s; white-space:nowrap; }
+  #intro .boot.on { opacity:1; }
+  #intro .boot span { animation:blink .5s steps(1) infinite; } @keyframes blink { 50% { opacity:0; } }
+  #intro .line { position:absolute; left:50%; top:50%; height:1px; width:0; transform:translate(-50%, 18px); background:var(--cy); box-shadow:0 0 12px var(--cy), 0 0 40px var(--cy); transition:width .7s cubic-bezier(.7,0,.2,1), opacity .4s; }
+  #intro .line.on { width:min(520px, 80vw); }
+  #intro .bars::before, #intro .bars::after { content:''; position:absolute; left:0; right:0; height:0; background:#000; transition:height .8s cubic-bezier(.7,0,.2,1); z-index:2; }
+  #intro .bars::before { top:0; } #intro .bars::after { bottom:0; }
+  #intro .bars.on::before, #intro .bars.on::after { height:9vh; }
+  #intro .sub { position:absolute; left:0; right:0; bottom:16vh; text-align:center; font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:.3em; color:var(--fg); opacity:0; transform:translateY(10px); transition:opacity .4s, transform .6s; text-transform:uppercase; padding:0 20px; z-index:3; }
+  #intro .sub.on { opacity:1; transform:none; } #intro .sub b { color:var(--cy); font-weight:400; }
+  #intro .flash { position:absolute; inset:0; background:#dffbff; opacity:0; mix-blend-mode:screen; }
+  #skip { position:absolute; right:22px; bottom:22px; pointer-events:auto; background:rgba(6,9,14,.5); border:1px solid var(--faint); color:var(--dim); font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:.2em; padding:9px 14px; border-radius:99px; cursor:pointer; z-index:5; opacity:0; transition:opacity .4s; }
+  #skip.on { opacity:1; }
+  .ui.intro .top, .ui.intro #hero, .ui.intro .cue { opacity:0; pointer-events:none; }
+  .top { transition:opacity .8s; }
+
+  /* ---- swipe UI ---- */
+  #panel { pointer-events:none; } .show-hold #panel { pointer-events:auto; }
+  .acts { display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+  .acts button, .acts a { pointer-events:auto; display:flex; align-items:center; gap:7px; background:rgba(255,255,255,.06); border:1px solid var(--faint); color:var(--fg); font:500 12.5px 'Space Grotesk', sans-serif; padding:9px 13px; border-radius:99px; cursor:pointer; text-decoration:none; transition:background .25s, border-color .25s, transform .15s; }
+  .acts button:active, .acts a:active { transform:scale(.95); }
+  .acts button.pri { background:var(--fg); color:#05070b; border-color:var(--fg); }
+  .acts button.on { background:var(--cy); color:#05070b; border-color:var(--cy); box-shadow:0 0 14px var(--cy); }
+  .acts a.tr { margin-left:auto; }
+  .seenq { display:none; margin-top:10px; font-size:12.5px; color:var(--dim); align-items:center; gap:8px; flex-wrap:wrap; }
+  .seenq.on { display:flex; }
+  .seenq button { pointer-events:auto; background:none; border:1px solid var(--faint); color:var(--fg); font:inherit; padding:6px 11px; border-radius:99px; cursor:pointer; }
+  .status { margin-top:8px; font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:.12em; color:var(--cy); text-transform:uppercase; min-height:12px; }
+  .seg.wl { color:var(--fg); padding:7px 13px !important; cursor:pointer; font-size:12.5px; gap:6px; }
+  .seg.wl b { font-weight:500; }
+  .stamp { position:fixed; left:50%; top:38%; transform:translate(-50%,-50%) rotate(-12deg); font-family:'Unbounded', sans-serif; font-weight:800; font-size:clamp(28px, 6vw, 56px); letter-spacing:.04em; padding:10px 22px; border:4px solid currentColor; border-radius:12px; opacity:0; pointer-events:none; z-index:6; text-shadow:0 0 30px currentColor; }
+  .toast { position:fixed; left:50%; top:86px; transform:translate(-50%, -10px); background:rgba(6,9,14,.86); border:1px solid var(--faint); padding:10px 16px; border-radius:99px; font-size:13px; opacity:0; transition:opacity .3s, transform .4s; z-index:7; pointer-events:none; white-space:nowrap; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+  .toast.on { opacity:1; transform:translate(-50%, 0); }
+  .drawer { position:fixed; top:0; right:0; bottom:0; width:min(420px, 100vw); background:rgba(5,8,12,.95); border-left:1px solid var(--faint); z-index:8; transform:translateX(102%); transition:transform .5s cubic-bezier(.2,.8,.1,1); pointer-events:auto; overflow-y:auto; padding:22px; backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); }
+  .drawer.on { transform:none; }
+  .dhead { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .dhead h3 { font-family:'Unbounded', sans-serif; font-weight:800; font-size:22px; letter-spacing:-.02em; }
+  .dhead button { background:none; border:1px solid var(--faint); color:var(--fg); width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:14px; }
+  .dsec { margin-top:18px; } .dsec h4 { font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.24em; color:var(--cy); font-weight:400; margin-bottom:8px; text-transform:uppercase; }
+  .ditem { display:flex; gap:12px; align-items:center; padding:9px 0; border-bottom:1px solid var(--faint); }
+  .ditem img { width:42px; height:63px; border-radius:4px; object-fit:cover; flex:none; }
+  .ditem div { flex:1; min-width:0; } .ditem b { display:block; font-weight:500; font-size:14px; } .ditem small { color:var(--dim); font-size:11.5px; }
+  .ditem a, .ditem button { background:none; border:1px solid var(--faint); color:var(--fg); font-size:11px; padding:6px 10px; border-radius:99px; cursor:pointer; text-decoration:none; white-space:nowrap; }
+  .dempty { color:var(--dim); font-size:13px; padding:6px 0; }
+  @media (max-width:760px) {
+    .acts { gap:6px; margin-top:10px; } .acts button, .acts a { padding:8px 10px; font-size:12px; }
+    .acts button span { display:none; } .acts button.pri span { display:inline; }
+    #panel { max-height:58vh; overflow-y:auto; overscroll-behavior:contain; }
+    .toast { top:110px; }
+  }
+
+  /* ---- stills + trailer ---- */
+  .stillbox { position:relative; margin-top:14px; aspect-ratio:16/9; border-radius:10px; overflow:hidden; background:#000; display:none; }
+  .stillbox.on { display:block; }
+  .stillbox .sb { position:absolute; inset:0; background-size:cover; background-position:center; opacity:0; transition:opacity 1.2s; }
+  .stillbox .sb.on { opacity:1; animation:kb 7s linear forwards; }
+  @keyframes kb { from { transform:scale(1.02) translate(0,0); } to { transform:scale(1.14) translate(-2%,-1.5%); } }
+  .sbplay { position:absolute; left:12px; bottom:12px; pointer-events:auto; background:rgba(5,7,11,.7); border:1px solid rgba(255,255,255,.35); color:#fff; font:500 12.5px 'Space Grotesk', sans-serif; padding:8px 13px; border-radius:99px; cursor:pointer; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
+  .tmodal { position:fixed; inset:0; z-index:9; background:rgba(0,0,0,.92); display:none; align-items:center; justify-content:center; flex-direction:column; gap:16px; pointer-events:auto; padding:16px; }
+  .tmodal.on { display:flex; }
+  .tbox { width:min(1100px, 100%); aspect-ratio:16/9; background:#000; border-radius:10px; overflow:hidden; box-shadow:0 0 80px rgba(94,240,255,.15); }
+  .tbox iframe { width:100%; height:100%; border:0; display:block; }
+  #tclose { background:none; border:1px solid var(--faint); color:var(--fg); font:500 13px 'Space Grotesk', sans-serif; padding:10px 18px; border-radius:99px; cursor:pointer; }
+  .endc button { pointer-events:auto; margin-top:18px; background:none; border:1px solid var(--faint); color:var(--fg); font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.2em; padding:10px 18px; border-radius:99px; cursor:pointer; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+</head>
+<body class="lock">
+<div class="loader" id="loader"><span id="ltxt">PRINTING POSTERS</span><b><u id="lbar"></u></b></div>
+<canvas id="gl"></canvas>
+<div class="stills" id="stills"></div>
+<div class="gate" id="gate">
+  <div class="k">A TASTE ENGINE · PROTOTYPE</div>
+  <h1>Next Frame</h1>
+  <p>Film picks for Kris &amp; Prashanth. Best with headphones.</p>
+  <button class="go" id="go">Enter with sound</button>
+  <button class="quiet" id="quiet">enter silently</button>
+</div>
+<div id="intro">
+  <div class="bars" id="ibars"></div>
+  <div class="boot" id="boot">INITIALISING TASTE ENGINE<span>_</span></div>
+  <div class="line" id="iline"></div>
+  <div class="sub" id="isub">for <b>Kris &amp; Prashanth</b> · 25 films · 10 shows</div>
+  <div class="flash" id="iflash"></div>
+  <button id="skip">SKIP INTRO →</button>
+</div>
+<div id="scroll"></div>
+
+<div class="ui" id="ui">
+  <svg id="links"></svg>
+  <div id="tags"></div>
+
+  <div class="top">
+    <div class="brand"><span style="display:flex;align-items:center;gap:10px"><i></i>Next Frame</span><button class="seg snd mobsnd" id="snd2" style="pointer-events:auto"><span class="bars"><b></b><b></b><b></b></span></button></div>
+    <div class="ctrls">
+      <div class="seg" id="typ"><button data-v="all" class="on">All</button><button data-v="movie">Movies</button><button data-v="tv">Shows</button></div>
+      <div class="seg" id="cat"><label>Genre</label><button data-v="all" class="on">All</button><button data-v="horror">Horror</button><button data-v="thriller">Thriller</button><button data-v="action">Action</button><button data-v="comedy">Comedy</button><button data-v="drama">Drama</button></div>
+      <div class="seg" id="pace"><label>Pace</label><button data-v="any" class="on">Any</button><button data-v="fast">Fast</button><button data-v="medium">Medium</button><button data-v="slow">Slow</button></div>
+      <button class="seg wl" id="wlBtn">♥ <b id="wlCount">0</b></button>
+      <button class="seg snd" id="snd"><span class="bars"><b></b><b></b><b></b></span><span id="sndt">Sound</span></button>
+    </div>
+  </div>
+
+  <div class="hero" id="hero">
+    <div class="k">280 films on the wall</div>
+    <h1>Your next favourite<br><span>film is in here.</span></h1>
+    <p id="herop">Scroll, and watch your picks find you. Swipe to sort them.</p>
+  </div>
+  <div class="cue" id="cue">SCROLL ↓</div>
+
+  <div class="hud" id="hud">
+    <h5>READING YOUR TASTE</h5>
+    <div><b>35</b> films &amp; shows you loved, locked in</div>
+    <div>pace tonight → <b id="hpace">any</b></div>
+    <div>languages in play → <b>English · Tamil · Telugu · Malayalam · Hindi</b></div>
+    <div>ratings → <b>IMDb + Rotten Tomatoes + Letterboxd</b></div>
+    <div>favourite genres → <b>horror · thriller · action · comedy</b></div>
+    <div>matching against <b>280</b> films…</div>
+  </div>
+
+  <div id="seeds"></div>
+
+  <div id="panel">
+    <div class="k"><span id="pK">Pick 01 / 07</span><span id="pMeta"></span></div>
+    <h2 id="pTitle"></h2>
+    <div class="genre" id="pGenre"></div>
+    <div class="stillbox" id="stillbox"><div class="sb" id="sbA"></div><div class="sb" id="sbB"></div><button class="sbplay" id="sbPlay">▶ Play trailer</button></div>
+    <div class="matchrow"><div class="big" id="pMatch"></div><div class="lbl"><span id="pFor"></span><em id="pTake"></em></div></div>
+    <div class="acts" id="acts"><button data-a="nope" title="Not for us (←)">✕<span>Not for us</span></button><button data-a="seen" title="Seen it (↑)">◉<span>Seen it</span></button><button data-a="want" class="pri" title="Watchlist (→)">♥<span>Watchlist</span></button><button class="tr" id="pTrailer" data-a="trailer">▶<span>Trailer</span></button></div>
+    <div class="seenq" id="seenq">Did you like it? <button data-v="up">👍 Loved it</button><button data-v="down">👎 Nah</button></div>
+    <div class="status" id="pStatus"></div>
+    <div class="sect"><h4>Why this pick</h4><ul class="why" id="pWhy"></ul></div>
+    <div class="sect"><h4>The verdict</h4><div class="scores" id="pScores"></div></div>
+    <div class="sect"><h4>Pace</h4><div class="pacebox"><div class="segs" id="pSegs"><b></b><b></b><b></b></div><span class="pl" id="pPace"></span><svg viewBox="0 0 200 22" preserveAspectRatio="none"><path id="pWave"/></svg></div></div>
+    <div class="sect"><h4>Word of mouth</h4><div class="reddit" id="pReddit"></div></div>
+    <div class="note">Ratings checked Nov 2026 · n/a = not listed there · Images &amp; trailers: TMDB</div>
+  </div>
+
+  <div class="endc" id="endc"><h2>That's your lineup.</h2><p>Your swipes are saved on this phone — tap ♥ at the top for your watchlist. Posters, stills and trailers come from TMDB.</p><button id="replay">↺ REPLAY INTRO</button></div>
+  <div class="empty" id="empty">Nothing left with these filters — try another genre or pace.</div>
+  <div class="stamp" id="stamp"></div>
+  <div class="toast" id="toast"></div>
+  <div class="tmodal" id="tmodal"><div class="tbox"><iframe id="tframe" title="Trailer" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div><button id="tclose">✕ Close</button></div>
+  <div class="drawer" id="drawer"><div class="dhead"><h3>Your lists</h3><button id="dClose">✕</button></div><div id="dBody"></div></div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+/* =============== DATA =============== */
+// Picks for Kris & Prashanth, matched to the films they said they loved.
+// Ratings looked up Nov 2026 (IMDb, Rotten Tomatoes critics / audience, Letterboxd); null = not found / not on that site.
+// sty: 0 clouds · 1 space · 2 smoke · 3 fog · 4 dual · 5 neon · 6 chrome · 7 aurora
+const LOVED = [
+  ['kgf','KGF'],['inter','Interstellar'],['quietplace','A Quiet Place'],['hereditary','Hereditary'],['smile','Smile'],
+  ['underwater','Underwater'],['shallows','The Shallows'],['weapons','Weapons'],['nosferatu','Nosferatu'],['dracula','Dracula Untold'],
+  ['28yl','28 Years Later'],['extraction','Extraction'],['babydriver','Baby Driver'],['topgun','Top Gun: Maverick'],['mi4','Mission: Impossible 4'],
+  ['thudarum','Thudarum'],['evaru','Evaru'],['dragon','Dragon'],['arya2','Arya 2'],['mahaan','Mahaan'],
+  ['horriblebosses','Horrible Bosses'],['rickystanicky','Ricky Stanicky'],['wardogs','War Dogs'],['whyhim','Why Him?'],['chhichhore','Chhichhore'],
+  ['superboys','Superboys of Malegaon'],['tholiprema','Tholi Prema'],['rabne','Rab Ne Bana Di Jodi'],['knivesout','Knives Out'],['13lives','13 Lives'],
+];
+const SEEDS = LOVED.map(([id, title], k) => ({ id, title, k }));
+const F = (id, title, year, lang, mins, cat, genre, pace, imdb, rtc, rta, lb, m, why, take, buzz, art) => ({ id, title, year, lang, mins, cat, genre, pace, imdb, rtc, rta, lb, m, why, take, buzz, ...art });
+const FILMS = [
+  F('talk','Talk to Me',2023,'English',95,'horror','Horror · Supernatural','fast',7.1,94,83,null,94,
+    [['smile','A curse that spreads through a group of friends — same creeping dread'],['hereditary','Grief-driven horror that gets genuinely nasty']],
+    'The best-reviewed horror of its year.','Rotten Tomatoes audiences call it fast, scary and hard to predict.',
+    { kind:'smoke', sty:2, font:'syne', pal:['#c43dff','#07030c','#ffd36b'], sun:[.5,.5] }),
+  F('busan','Train to Busan',2016,'Korean',118,'horror','Horror · Action','fast',7.6,95,89,null,95,
+    [['28yl','Fast, vicious infected — but trapped on a speeding train'],['quietplace','A parent fighting to keep a child alive']],
+    'Critics and crowds agree on this one.','Its 95% critics / 89% audience split means almost nobody dislikes it.',
+    { kind:'ridge', sty:2, font:'unb', pal:['#5a7ea6','#04070c','#ffcf8a'], sun:[.6,.4] }),
+  F('sinners','Sinners',2025,'English',137,'horror','Horror · Vampire · Music','medium',7.5,97,97,null,93,
+    [['nosferatu','Stylish, atmospheric vampire horror'],['dracula','Vampires plus big action set pieces']],
+    'A rare horror film critics and audiences both loved.','Scored in the high 90s with both RT critics and verified audiences.',
+    { kind:'duo', sty:0, font:'play', pal:['#ff7a2f','#0a0503','#ffe2a8'], sun:[.5,.42] }),
+  F('descent','The Descent',2005,'English',99,'horror','Horror · Survival','medium',7.2,87,76,3.6,92,
+    [['underwater','Trapped deep underground with something in the dark'],['shallows','A survival trip that turns into a nightmare']],
+    'The claustrophobia classic.','Still named among the scariest survival horrors ever made.',
+    { kind:'smoke', sty:3, font:'anton', pal:['#c7352a','#030202','#ff9c6b'], sun:[.5,.3] }),
+  F('ratsasan','Ratsasan',2018,'Tamil',170,'thriller','Thriller · Serial killer','medium',8.3,null,null,null,93,
+    [['evaru','Twisty South Indian thriller where nothing is what it seems'],['weapons','A town on edge over missing kids']],
+    'One of Tamil cinema’s highest-rated thrillers.','Once ranked the #1 Tamil film on IMDb; the climax is what people talk about.',
+    { kind:'smoke', sty:3, rain:1, font:'anton', pal:['#2f6b8f','#020608','#ff3b3b'], sun:[.5,.35] }),
+  F('salaar','Salaar: Part 1',2023,'Telugu',172,'action','Action · Gangster epic','medium',6.6,null,null,null,94,
+    [['kgf','Same director as KGF (Prashanth Neel), same scale and style'],['extraction','One-man-army action']],
+    'Big swing from the KGF director.','RT audiences: tons of satisfying action, though the violence will put some off.',
+    { kind:'mech', sty:2, font:'anton', pal:['#ff6a00','#080302','#ffd08a'], sun:[.5,.45] }),
+  F('kill','Kill',2024,'Hindi',105,'action','Action · Thriller','fast',null,90,null,null,94,
+    [['extraction','Brutal close-quarters fights'],['mi4','Relentless action in a tight, confined space']],
+    'Certified Fresh, and very, very gory.','Fans compare it to The Raid. Not for the squeamish.',
+    { kind:'duo', sty:5, font:'unb', pal:['#ff2e4d','#05030a','#59d9ff'], sun:[.5,.5] }),
+  F('pushpa','Pushpa: The Rise',2021,'Telugu',179,'action','Action · Crime','medium',7.6,null,74,null,93,
+    [['arya2','Same director (Sukumar) and star (Allu Arjun) as Arya 2'],['kgf','A rise-of-a-kingpin mass saga']],
+    'A pan-India sensation.','Huge crowd favourite; some reviews say it drags in places.',
+    { kind:'smoke', sty:2, font:'anton', pal:['#d94f2a','#0b0402','#ffcf6b'], sun:[.5,.5] }),
+  F('vikram','Vikram',2022,'Tamil',174,'action','Action · Thriller','fast',8.3,null,null,null,93,
+    [['kgf','Mass action with huge set pieces'],['mahaan','A gritty Tamil gangster world']],
+    'Kamal Haasan at full throttle.','Fans love the final act. It ties into Kaithi, so many say watch that first.',
+    { kind:'smoke', sty:2, font:'anton', pal:['#ffae1a','#06080a','#ff3b2f'], sun:[.5,.52] }),
+  F('maharaja','Maharaja',2024,'Tamil',141,'thriller','Thriller · Revenge','medium',8.3,null,null,null,92,
+    [['evaru','A non-linear story built around a twist'],['thudarum','An ordinary man pushed too far']],
+    'The screenplay is the star.','Often called one of 2024’s best Indian films; the twists are the talking point.',
+    { kind:'house', sty:0, font:'unb', pal:['#c98a3a','#0a0603','#ffe0a0'], sun:[.7,.25] }),
+  F('madmax','Mad Max: Fury Road',2015,'English',120,'action','Action · Sci-fi','fast',8.1,97,86,null,92,
+    [['babydriver','Car chases staged like choreography'],['topgun','Practical stunts you can feel']],
+    'Possibly the action film of the century.','Rotten Tomatoes named it the best film of the past 25 years.',
+    { kind:'ridge', sty:2, font:'anton', pal:['#ff8a1f','#1a0703','#ffd38a'], sun:[.3,.32] }),
+  F('drishyam','Drishyam',2013,'Malayalam',164,'thriller','Thriller · Family','medium',8.4,null,null,null,91,
+    [['thudarum','Same star — Mohanlal'],['evaru','A cover-up thriller full of misdirection']],
+    'The slow start is the setup.','People warn the first half is slow on purpose; the payoff is legendary.',
+    { kind:'house', sty:0, rain:1, font:'play', pal:['#5f8f78','#04100b','#ffd99a'], sun:[.78,.22] }),
+  F('gamenight','Game Night',2018,'English',100,'comedy','Comedy · Crime','fast',6.9,85,78,null,91,
+    [['horriblebosses','From the writers of Horrible Bosses'],['rickystanicky','Friends in way over their heads']],
+    'Smarter than it looks.','Audiences keep singling out Jesse Plemons as the scene-stealer.',
+    { kind:'duo', sty:5, font:'unb', pal:['#ffcc33','#07060a','#ff4fd8'], sun:[.5,.45] }),
+  F('fall','Fall',2022,'English',107,'thriller','Thriller · Survival','medium',6.4,79,79,null,90,
+    [['shallows','Stranded in one spot — pure survival'],['13lives','Real-feeling, edge-of-your-seat tension']],
+    'Don’t watch if you hate heights.','RT audiences: a suspenseful B-movie done right, if you don’t expect realism.',
+    { kind:'tower', sty:0, font:'unb', pal:['#4fa3ff','#03101f','#fff2c4'], sun:[.3,.2] }),
+  F('lovetoday','Love Today',2022,'Tamil',154,'comedy','Comedy · Romance','medium',8.0,null,null,null,90,
+    [['dragon','Same star as Dragon — Pradeep Ranganathan'],['whyhim','Awkward relationship comedy with the parents involved']],
+    'A small film that became a blockbuster.','Reviewers call it hip and funny, with a great phone-swap premise.',
+    { kind:'duo', sty:4, font:'syne', pal:['#ff4f9a','#0b0408','#5aa0ff'], sun:[.5,.45] }),
+  F('johnwick','John Wick',2014,'English',101,'action','Action · Revenge','fast',7.5,86,82,null,90,
+    [['extraction','Precise, brutal one-man action'],['babydriver','Stylish, music-driven violence']],
+    'Where the franchise began.','Still rewatched endlessly — the club shootout is the fan favourite.',
+    { kind:'smoke', sty:5, rain:1, font:'syne', pal:['#3d6bff','#03040a','#ff3df2'], sun:[.5,.4] }),
+  F('stree','Stree',2018,'Hindi',128,'horror','Horror · Comedy','medium',7.5,80,81,null,89,
+    [['chhichhore','The same small-town friends comedy energy'],['smile','With real scares mixed in']],
+    'Laughs and scares in one.','Viewers say it balances genuine scares with sharp, witty comedy.',
+    { kind:'house', sty:7, font:'anton', pal:['#ff3d7f','#0b0310','#ffd27a'], sun:[.5,.3] }),
+  F('12thfail','12th Fail',2023,'Hindi',147,'drama','Drama · True story','medium',8.8,null,null,null,89,
+    [['chhichhore','A student-struggle story that hits the heart'],['superboys','An underdog true story']],
+    'Topped IMDb’s list of top-rated Indian films.','People call it deeply inspiring; a few say it runs long.',
+    { kind:'ridge', sty:0, font:'unb', pal:['#ffb347','#0c0805','#fff2d0'], sun:[.5,.3] }),
+  F('niceguys','The Nice Guys',2016,'English',116,'comedy','Comedy · Crime','fast',7.4,91,null,null,89,
+    [['wardogs','Two mismatched hustlers in over their heads'],['knivesout','A mystery that’s genuinely funny']],
+    'A cult favourite.','Fans have been asking for a sequel for years.',
+    { kind:'duo', sty:0, font:'play', pal:['#ff8f5a','#140a10','#ffe7a3'], sun:[.5,.4] }),
+  F('bringher','Bring Her Back',2025,'English',104,'horror','Horror · Psychological','medium',7.1,89,79,3.8,88,
+    [['hereditary','Grief horror that goes to deeply disturbing places'],['weapons','Recent, unsettling and widely talked about']],
+    'From the Talk to Me directors. Brutal.','Viewers call it gruesome and hard to watch; Sally Hawkins gets the praise.',
+    { kind:'house', sty:3, font:'syne', pal:['#6e8f6b','#050806','#f2f0c8'], sun:[.6,.3] }),
+  F('crawl','Crawl',2019,'English',87,'horror','Horror · Survival','fast',6.1,84,75,null,88,
+    [['shallows','Woman vs. predator — this time alligators in a flood'],['underwater','Rising water, nowhere to go']],
+    'Short, lean and tense.','Some call it disposable popcorn fun; others find it a non-stop white-knuckle ride.',
+    { kind:'house', sty:0, rain:1, font:'anton', pal:['#3e7a5e','#020805','#d9f7a0'], sun:[.3,.25] }),
+  F('jathi','Jathi Ratnalu',2021,'Telugu',148,'comedy','Comedy','medium',7.4,80,null,null,88,
+    [['chhichhore','Three friends, non-stop banter'],['rickystanicky','Idiots stumbling into big trouble']],
+    'Pure laugh-out-loud Telugu comedy.','Critics say the three leads make you laugh so hard you forget the thin plot.',
+    { kind:'duo', sty:6, font:'anton', pal:['#ffd23f','#0a0805','#3ae0c8'], sun:[.5,.45] }),
+  F('prisoners','Prisoners',2013,'English',153,'thriller','Thriller · Mystery','slow',8.2,81,null,null,87,
+    [['knivesout','A mystery that keeps you guessing — but much darker'],['weapons','Missing children and a town coming apart']],
+    'Heavy, but gripping.','Performances praised across the board; people warn it’s bleak.',
+    { kind:'ridge', sty:3, rain:1, font:'syne', pal:['#7f8c96','#050608','#e6eef2'], sun:[.5,.3] }),
+  F('sitaramam','Sita Ramam',2022,'Telugu',163,'drama','Romance · Period','slow',8.5,null,null,null,86,
+    [['tholiprema','A Telugu romance with big feelings'],['rabne','An old-school love story']],
+    'Bring tissues.','Fans call it a modern classic love story.',
+    { kind:'duo', sty:0, font:'play', pal:['#7fb0ff','#060a14','#ffd9e6'], sun:[.5,.35] }),
+  F('bramayugam','Bramayugam',2024,'Malayalam',139,'horror','Horror · Folk','slow',7.7,null,null,null,85,
+    [['nosferatu','Gothic, atmospheric horror (shot in black and white)'],['thudarum','Malayalam cinema at its most gripping']],
+    'Mammootty is terrifying.','The lead performance gets raves; some reviews flag the slow pace.',
+    { kind:'tower', sty:3, rain:1, font:'play', pal:['#bfbfbf','#050505','#ffffff'], sun:[.5,.3] }),
+];
+const CATS = { horror:'Horror', thriller:'Thriller', action:'Action', comedy:'Comedy', drama:'Drama' };
+const WORDS = ['ORBIT','MONSOON','ECHOES','SALT','HALO','EMBER','DRIFT','NORTH','STATIC','GLASS','KITE','AURORA','RIFT','PULSE','LANTERN','MIRAGE','CINDER','TIDEWATER','SIGNAL','HOLLOW'];
+const PALS = [['#ff6b3d','#14060a','#ffd3a1'],['#3ad1c4','#03100f','#d9fff7'],['#9b7bff','#0a0614','#ffd6f5'],['#e8c547','#0f0b02','#fff5cf'],['#ff3d7f','#0b0310','#ffc2d6'],['#5aa0ff','#030814','#d8e8ff'],['#7dd87d','#041004','#efffd9'],['#b8b8c0','#0b0b0d','#ffffff'],['#ff9e2c','#081018','#9be7ff'],['#d66bff','#05030f','#7af0ff'],['#ff4b4b','#0a0203','#ffe0a3'],['#2ee6a8','#02100c','#b9a8ff']];
+const KINDS = ['ridge','smoke','planet','house','tower','monolith','duo','mech','none','none'];
+const TOPS = ['A FILM BY NOBODY YET','COMING SOON','ONE NIGHT ONLY','NOW SHOWING','THIS SUMMER','IN CINEMAS SOMEWHERE'];
+{ const R = (() => { let a = 4242; return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; })();
+  SEEDS.forEach(s => { s.kind = KINDS[Math.floor(R() * 8)]; s.sty = Math.floor(R() * 8); s.font = ['anton','unb','play','syne'][Math.floor(R() * 4)]; s.pal = PALS[Math.floor(R() * PALS.length)]; s.sun = [.25 + R() * .5, .2 + R() * .3]; s.top = 'ONE YOU LOVED'; }); }
+
+// --- TV shows (matched to From, Widow's Bay, 3 Body Problem, Dark, Money Heist) ---
+const S = (id, title, year, lang, span, cat, genre, pace, imdb, rtc, rta, m, why, take, buzz, art) => ({ ...F(id, title, year, lang, null, cat, genre, pace, imdb, rtc, rta, null, m, why, take, buzz, art), type: 'tv', span });
+FILMS.push(
+  S('severance','Severance',2022,'English','2 seasons','thriller','Sci-fi · Mystery','slow',8.7,97,null,95,
+    [['dark','A puzzle-box mystery where every answer opens a bigger question'],['from','People trapped in a system they can’t explain']],
+    'The best mystery box on TV right now.','Critics put season 1 in the high 90s; season 2 opened at a perfect 100%.',
+    { kind:'monolith', sty:3, font:'syne', pal:['#9fd0ff','#04080f','#ffffff'], sun:[.5,.3] }),
+  S('1899','1899',2022,'Multilingual','1 season','horror','Mystery · Horror','slow',7.3,79,76,94,
+    [['dark','Same creators as Dark'],['from','Stranded somewhere that makes no sense']],
+    'Only one season — it was cancelled.','Most fans say it’s not quite Dark, but still a really good watch.',
+    { kind:'ridge', sty:3, font:'play', pal:['#6f8f9f','#03070a','#e8dcc0'], sun:[.5,.35] }),
+  S('silo','Silo',2023,'English','3 seasons','thriller','Sci-fi · Mystery','medium',null,88,null,93,
+    [['from','A sealed-off community full of secrets'],['3bp','Big, slow-burn sci-fi mystery']],
+    'Gets better every season.','Season 1 landed at 88% with critics; season 3 opened with a perfect score.',
+    { kind:'tower', sty:3, font:'unb', pal:['#c9a96a','#070605','#fff2d0'], sun:[.5,.25] }),
+  S('kingdom','Kingdom',2019,'Korean','2 seasons + special','horror','Horror · Period · Zombie','fast',8.3,98,92,93,
+    [['from','Relentless survival horror with no safe place'],['28yl','Fast, vicious infected — in Joseon-era Korea']],
+    'Possibly the best zombie show ever made.','98% with critics and 92% with audiences on Rotten Tomatoes.',
+    { kind:'tower', sty:2, font:'anton', pal:['#c7352a','#080303','#ffd38a'], sun:[.5,.3] }),
+  S('hillhouse','The Haunting of Hill House',2018,'English','Miniseries','horror','Horror · Family drama','slow',8.5,93,91,92,
+    [['from','Supernatural dread that slowly closes in'],['hereditary','Family grief turned into horror']],
+    'Scary and devastating in equal measure.','Critics and audiences both above 90% on Rotten Tomatoes.',
+    { kind:'house', sty:3, font:'play', pal:['#7f8fa0','#05060a','#e6eef8'], sun:[.6,.3] }),
+  S('squidgame','Squid Game',2021,'Korean','3 seasons','thriller','Thriller · Survival','fast',null,94,null,91,
+    [['moneyheist','Ordinary people in an impossible high-stakes game'],['from','Trapped, with no way out but forward']],
+    'Season 1 is the essential one.','Season 1 is widely called a masterpiece; later seasons split fans.',
+    { kind:'duo', sty:5, font:'unb', pal:['#ff2e7a','#05040a','#2ee6a8'], sun:[.5,.45] }),
+  S('darkmatter','Dark Matter',2024,'English','2 seasons','thriller','Sci-fi · Thriller','medium',7.7,82,null,90,
+    [['3bp','Big-idea physics sci-fi'],['dark','Alternate versions of yourself and the life you could have had']],
+    'Parallel worlds, played straight.','Critics praise Joel Edgerton’s dual role; the finale divides people.',
+    { kind:'planet', sty:1, font:'syne', pal:['#5a8cff','#020410','#ffffff'], sun:[.6,.25] }),
+  S('yellowjackets','Yellowjackets',2021,'English','3 seasons','thriller','Survival · Mystery','medium',7.7,100,null,89,
+    [['from','Survival in the woods — and something else out there'],['dark','Two timelines slowly revealing what happened']],
+    'Season 1 scored a perfect 100%.','Viewers call season 1 gripping; some say the pace sags in later seasons.',
+    { kind:'ridge', sty:3, font:'anton', pal:['#5f8f5f','#030803','#f2e6b0'], sun:[.5,.3] }),
+  S('paatallok','Paatal Lok',2020,'Hindi','2 seasons','thriller','Crime · Thriller','medium',8.2,null,null,89,
+    [['dark','A layered mystery where every suspect has a past'],['thudarum','Gritty, grounded Indian crime drama']],
+    'One of India’s best crime shows.','Reviewers call it a tight thriller where every episode ends on a cliffhanger.',
+    { kind:'smoke', sty:2, font:'anton', pal:['#c98a3a','#070403','#ffcf7a'], sun:[.5,.5] }),
+  S('asur','Asur',2020,'Hindi','2 seasons','thriller','Crime · Mythology','medium',8.5,null,null,88,
+    [['evaru','A twisty Indian thriller full of reversals'],['dark','Big mythic ideas inside a mystery']],
+    'Serial killer meets mythology.','Season 2 became the most popular Indian show on IMDb worldwide when it dropped.',
+    { kind:'monolith', sty:4, font:'syne', pal:['#ff4b4b','#06030a','#5aa0ff'], sun:[.5,.4] }),
+);
+// --- extra loved titles: the shows they named ---
+[['from','From'],['widowsbay','Widow’s Bay'],['3bp','3 Body Problem'],['dark','Dark'],['moneyheist','Money Heist']].forEach(([id, title]) => {
+  const s = { id, title, k: SEEDS.length }; const R = (SEEDS.length * 7919 % 97) / 97;
+  s.kind = ['monolith','smoke','planet','ridge','duo'][SEEDS.length % 5]; s.sty = [3, 2, 1, 3, 4][SEEDS.length % 5]; s.font = 'syne'; s.pal = PALS[(SEEDS.length * 5) % PALS.length]; s.sun = [.3 + R * .4, .25]; s.top = 'ONE YOU LOVED';
+  SEEDS.push(s);
+});
+FILMS.forEach(f => { f.top = f.genre.toUpperCase(); f.type = f.type || 'movie'; });
+// TMDB lookup hints: [year, original language, type, optional search text]
+const LOOKUP = {
+  talk:[2023,'en'], busan:[2016,'ko'], sinners:[2025,'en'], descent:[2005,'en'], ratsasan:[2018,'ta'], salaar:[2023,'te','movie','Salaar Part 1 Ceasefire'], kill:[2024,'hi'], pushpa:[2021,'te','movie','Pushpa The Rise'],
+  vikram:[2022,'ta'], maharaja:[2024,'ta'], madmax:[2015,'en','movie','Mad Max Fury Road'], drishyam:[2013,'ml'], gamenight:[2018,'en'], fall:[2022,'en'], lovetoday:[2022,'ta'], johnwick:[2014,'en'],
+  stree:[2018,'hi'], '12thfail':[2023,'hi'], niceguys:[2016,'en'], bringher:[2025,'en'], crawl:[2019,'en'], jathi:[2021,'te'], prisoners:[2013,'en'], sitaramam:[2022,'te'], bramayugam:[2024,'ml'],
+  severance:[2022,'en','tv'], '1899':[2022,'en','tv'], silo:[2023,'en','tv'], kingdom:[2019,'ko','tv'], hillhouse:[2018,'en','tv'], squidgame:[2021,'ko','tv'], darkmatter:[2024,'en','tv'], yellowjackets:[2021,'en','tv'], paatallok:[2020,'hi','tv'], asur:[2020,'hi','tv'],
+  kgf:[2018,'kn','movie','K.G.F Chapter 1'], inter:[2014,'en'], quietplace:[2018,'en'], hereditary:[2018,'en'], smile:[2022,'en'], underwater:[2020,'en'], shallows:[2016,'en'], weapons:[2025,'en'], nosferatu:[2024,'en'],
+  dracula:[2014,'en'], '28yl':[2025,'en'], extraction:[2020,'en'], babydriver:[2017,'en'], topgun:[2022,'en'], mi4:[2011,'en','movie','Mission Impossible Ghost Protocol'], thudarum:[2025,'ml'], evaru:[2019,'te'], dragon:[2025,'ta'],
+  arya2:[2009,'te'], mahaan:[2022,'ta'], horriblebosses:[2011,'en'], rickystanicky:[2024,'en'], wardogs:[2016,'en'], whyhim:[2016,'en'], chhichhore:[2019,'hi'], superboys:[2025,'hi','movie','Superboys of Malegaon'], tholiprema:[2018,'te'],
+  rabne:[2008,'hi'], knivesout:[2019,'en'], '13lives':[2022,'en'],
+  from:[2022,'en','tv'], widowsbay:[null,'en','tv',"Widow's Bay"], '3bp':[2024,'en','tv'], dark:[2017,'de','tv'], moneyheist:[2017,'es','tv','Money Heist'],
+};
+
+/* =============== GLSL: key art =============== */
+const KEYART = /* glsl */`
+float kh(vec2 p){ p = fract(p*vec2(123.34,456.21)); p += dot(p, p+45.32); return fract(p.x*p.y); }
+float kn(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 u=f*f*(3.-2.*f); return mix(mix(kh(i),kh(i+vec2(1,0)),u.x), mix(kh(i+vec2(0,1)),kh(i+vec2(1,1)),u.x), u.y); }
+float kf(vec2 p){ float v=0., a=.5; mat2 m = mat2(1.6,1.2,-1.2,1.6); for(int i=0;i<5;i++){ v+=a*kn(p); p=m*p+3.1; a*=.5; } return v; }
+vec3 keyart(vec2 uv, float sty, vec3 c1, vec3 c2, vec3 c3, vec2 sunIn, float seed, float rain, float t){
+  vec2 p = vec2(uv.x*.6667, uv.y);
+  vec2 s = vec2(sunIn.x*.6667, 1. - sunIn.y);
+  float d = length(p - s);
+  float glow = exp(-d*4.5)*.8 + exp(-d*14.)*1.3;
+  vec3 sky = mix(c1*1.05, c2, smoothstep(.15, .95, uv.y));
+  float sd = seed*7.13;
+  vec3 col;
+  if (sty < .5) {
+    vec2 q = p*vec2(2.4,5.5) + vec2(t*.02 + sd, sd);
+    float n = kf(q), n2 = kf(q + (s - p)*.35);
+    float cl = smoothstep(.42, .78, n) * smoothstep(.16, .55, uv.y);
+    float lit = clamp((n - n2)*5. + .25, 0., 1.) * exp(-d*2.2);
+    vec3 cc = mix(c2*.6, c1*.7, .3) + c3*lit*1.6;
+    float ang = atan(p.y - s.y, p.x - s.x);
+    float rays = pow(kn(vec2(ang*12. + sd, t*.08)), 3.) * exp(-d*1.8) * .6;
+    col = sky + c3*glow + c3*rays + c3*smoothstep(.065, .058, d)*1.2;
+    col = mix(col, cc, cl*.9);
+  } else if (sty < 1.5) {
+    float n1 = kf(p*2.2 + sd + t*.01), n2 = kf(p*4.5 - sd + n1*2.);
+    col = c2*.35 + c1*pow(n1, 2.4)*1.7 + c3*pow(n2, 3.5)*1.3;
+    float st = kh(floor(uv*vec2(150., 225.)) + sd);
+    col += step(.982, st) * (.55 + .45*sin(t*3. + st*90.));
+    col += c3*exp(-d*9.)*1.3;
+  } else if (sty < 2.5) {
+    vec2 q = p*vec2(2.2, 2.8) + vec2(sd, -t*.07);
+    float w = kf(q + kf(q*1.3 + t*.035)*1.7);
+    float illum = exp(-d*2.)*1.8 + .1;
+    col = mix(c2*.12, c1, clamp(w*illum, 0., 1.5)) + c3*glow*.9;
+    vec2 eq = p*vec2(18., 12.) + vec2(0., -t*.9); vec2 id = floor(eq), f = fract(eq) - .5; float h = kh(id + sd);
+    col += c3 * smoothstep(.09, 0., length(f - vec2(sin(t + h*30.)*.25, 0.))) * step(.86, h) * 2.2;
+  } else if (sty < 3.5) {
+    col = mix(c1*1.1, c2, smoothstep(0., 1., uv.y)*.85);
+    for (int i = 0; i < 4; i++) { float fi = float(i);
+      float b = kf(vec2(p.x*2.5 + t*.015*(fi + 1.) + sd + fi*5., uv.y*8. + fi));
+      col = mix(col, c3, smoothstep(.45, .8, b) * smoothstep(.8, .12, uv.y) * .38); }
+    col += c3*glow*.6 + c3*exp(-abs(p.x - s.x)*9.)*smoothstep(.25, 1., uv.y)*.22;
+  } else if (sty < 4.5) {
+    float v = (uv.x - .5) + (uv.y - .5)*.45 + (kf(p*3. + vec2(sd, t*.05)) - .5)*.38;
+    float m = smoothstep(-.02, .02, v);
+    col = mix(c1, c3, m) * (.3 + .95*exp(-length(uv - vec2(.5, .55))*1.5));
+    col += mix(c1, c3, .5)*exp(-abs(v)*26.)*1.5 + vec3(1.)*exp(-abs(v)*110.)*.9;
+  } else if (sty < 5.5) {
+    col = c2*.45 + c1*.18*smoothstep(1., 0., uv.y);
+    for (int i = 0; i < 3; i++) { float fi = float(i);
+      vec2 g = uv*vec2(5. + fi*4., 7.5 + fi*6.) + vec2(sd*(fi + 1.), -t*.03*(fi + 1.)); vec2 id = floor(g), f = fract(g) - .5; float h = kh(id + fi*7.);
+      vec2 o = vec2(h - .5, fract(h*13.) - .5)*.5;
+      col += mix(c1, c3, fract(h*7.)) * smoothstep(.3, .2, length(f - o)) * step(.5, h) * (.55 - fi*.13); }
+    col += c3*exp(-abs(fract(p.x*4. + sd) - .5)*28.) * smoothstep(0., .7, uv.y) * .3;
+  } else if (sty < 6.5) {
+    float w = kf(p*1.8 + kf(p*2.2 + vec2(t*.04, sd))*2.2);
+    float bands = .5 + .5*cos(w*18. + sd);
+    col = mix(c2*.3, mix(c1, c3, smoothstep(.3, .7, w)), bands) + vec3(1.)*pow(bands, 16.)*.7;
+  } else {
+    col = c2*.45;
+    for (int i = 0; i < 3; i++) { float fi = float(i);
+      float y0 = .6 + fi*.09 + (kf(vec2(p.x*2. + t*.025 + fi*3. + sd, fi)) - .5)*.28;
+      float r = exp(-pow((uv.y - y0)*9., 2.));
+      col += mix(c1, c3, fi/2.) * r * 1.1 * kf(vec2(p.x*14. + fi + t*.05, uv.y*2.)); }
+    col += step(.986, kh(floor(uv*vec2(150., 225.)) + sd)) * .8;
+  }
+  if (rain > 0.) { float cx = floor(uv.x*95.); float off = kh(vec2(cx, sd));
+    float y = fract(uv.y*1.7 + t*(1.3 + off) + off*9.);
+    col += rain * smoothstep(0., .02, y) * smoothstep(.13, .02, y) * step(.58, kh(vec2(cx, 9.))) * .2 * vec3(.85, .9, 1.); }
+  col *= 1. - smoothstep(.35, .9, length((uv - .5)*vec2(1.1, .85)))*.6;
+  return max(col, 0.);
+}`;
+
+/* =============== CANVAS: silhouettes + typography =============== */
+function rng(seed) { let a = seed >>> 0; return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const hx = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+const mix = (a, b, t) => { const A = hx(a), B = hx(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join(''); };
+const rgba = (h, a) => `rgba(${hx(h).join(',')},${a})`;
+const FONTS = { anton:['400', '"Anton"', true], unb:['800', '"Unbounded"', true], play:['italic 700', '"Playfair Display"', false], syne:['800', '"Syne"', true] };
+const mk = (W, H) => { const c = document.createElement('canvas'); c.width = W; c.height = H; return c; };
+
+function ridgeY(R, l, x, W, H) { const p = R.ph[l]; return H * (.6 + l * .09) + H * (.055 - l * .01) * (Math.sin(x / W * 5 + p) * .6 + Math.sin(x / W * 13 + p * 2) * .3 + Math.sin(x / W * 29 + p * 3) * .1); }
+function drawRidges(g, W, H, s, R, n, dark) {
+  for (let l = 0; l < n; l++) {
+    const gr = g.createLinearGradient(0, H * (.5 + l * .09), 0, H); gr.addColorStop(0, mix(s.pal[0], dark, .45 + l * .22)); gr.addColorStop(1, dark);
+    g.fillStyle = gr; g.beginPath(); g.moveTo(0, H);
+    for (let x = 0; x <= W; x += W / 90) g.lineTo(x, ridgeY(R, l, x, W, H));
+    g.lineTo(W, H); g.closePath(); g.fill();
+  }
+}
+function personPath(g, x, y, h, w) {
+  g.beginPath();
+  g.ellipse(x, y - h * .925, h * .052 * w, h * .064, 0, 0, 7);
+  g.moveTo(x - h * .028 * w, y - h * .865);
+  g.quadraticCurveTo(x - h * .13 * w, y - h * .85, x - h * .14 * w, y - h * .74);
+  g.lineTo(x - h * .16 * w, y - h * .48);
+  g.lineTo(x - h * .13 * w, y - h * .47);
+  g.lineTo(x - h * .17 * w, y - h * .2);
+  g.lineTo(x - h * .075 * w, y - h * .2);
+  g.lineTo(x - h * .07 * w, y);
+  g.lineTo(x - h * .018 * w, y);
+  g.lineTo(x, y - h * .36);
+  g.lineTo(x + h * .018 * w, y);
+  g.lineTo(x + h * .07 * w, y);
+  g.lineTo(x + h * .075 * w, y - h * .2);
+  g.lineTo(x + h * .17 * w, y - h * .2);
+  g.lineTo(x + h * .13 * w, y - h * .47);
+  g.lineTo(x + h * .16 * w, y - h * .48);
+  g.lineTo(x + h * .14 * w, y - h * .74);
+  g.quadraticCurveTo(x + h * .13 * w, y - h * .85, x + h * .028 * w, y - h * .865);
+  g.closePath();
+}
+function figure(g, x, y, h, col, rim, sunX, W, wide = 1) {
+  const dx = Math.sign(sunX * W - x || 1) * Math.max(1, h * .008);
+  g.save(); g.translate(dx, -Math.abs(dx) * .4); personPath(g, x, y, h, wide); g.fillStyle = rim; g.fill(); g.restore();
+  personPath(g, x, y, h, wide); g.fillStyle = col; g.fill();
+}
+function glow(g, x, y, r, col, a) { const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, rgba(col, a)); gr.addColorStop(1, rgba(col, 0)); g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); }
+
+// returns overlay layers (transparent): mid (silhouettes) and fg (type)
+function overlay(s, W, H, seed) {
+  const R = rng(seed); R.ph = [R() * 9, R() * 9, R() * 9];
+  const [c1, c2, c3] = s.pal, dark = mix(c2, '#000000', .6), sil = mix(c2, '#000000', .75), rim = rgba(c3, .9);
+  const mid = mk(W, H), fg = mk(W, H);
+  let g = mid.getContext('2d');
+  const sx = s.sun[0];
+  switch (s.kind) {
+    case 'ridge': drawRidges(g, W, H, s, R, 3, dark); { const x = W * (.4 + R() * .2); figure(g, x, ridgeY(R, 2, x, W, H) + H * .006, H * .15, sil, rim, sx, W); } break;
+    case 'smoke': drawRidges(g, W, H, s, R, 1, dark); glow(g, W * .5, H * .66, W * .5, c3, .35); figure(g, W * .5, H * 1.02, H * .5, sil, rim, sx, W, 1.1); break;
+    case 'mech': drawRidges(g, W, H, s, R, 2, dark); glow(g, W * .5, H * .66, W * .4, c3, .3); figure(g, W * .5, H * 1.0, H * .44, sil, rim, sx, W, 1.6); break;
+    case 'house': {
+      drawRidges(g, W, H, s, R, 2, dark);
+      const hx_ = W * .5, hy = H * .8, hw = W * .34, hh = H * .1;
+      g.fillStyle = sil; g.fillRect(hx_ - hw / 2, hy - hh, hw, hh + H * .2);
+      g.beginPath(); g.moveTo(hx_ - hw * .62, hy - hh); g.lineTo(hx_, hy - hh - H * .085); g.lineTo(hx_ + hw * .62, hy - hh); g.closePath(); g.fill();
+      glow(g, hx_ + hw * .2, hy - hh * .55, W * .14, c3, .75); g.fillStyle = c3; g.fillRect(hx_ + hw * .14, hy - hh * .72, hw * .12, hh * .32);
+      for (let i = 0; i < 8; i++) { const tx = R() < .5 ? R() * W * .25 : W * .75 + R() * W * .25, th = H * (.12 + R() * .12), ty = H * .87; g.fillStyle = sil; g.beginPath(); g.moveTo(tx - th * .22, ty); g.lineTo(tx, ty - th); g.lineTo(tx + th * .22, ty); g.fill(); }
+      g.fillStyle = sil; g.fillRect(0, H * .865, W, H * .14); figure(g, W * .3, H * .9, H * .09, sil, rim, sx, W); break; }
+    case 'tower': {
+      drawRidges(g, W, H, s, R, 2, dark); g.fillStyle = sil;
+      let w = W * .34, y = H * .9;
+      for (let i = 0; i < 6; i++) { const h = H * .07; g.fillRect(W * .5 - w / 2, y - h, w, h + 2); g.fillRect(W * .5 - w / 2 - W * .01, y - h, w + W * .02, H * .008); y -= h; w *= .78; }
+      g.beginPath(); g.ellipse(W * .5, y, w * .62, H * .05, 0, Math.PI, 0); g.fill(); g.fillRect(W * .5 - W * .004, y - H * .1, W * .008, H * .06);
+      glow(g, W * .5, H * .86, W * .14, c3, .85); g.fillStyle = c3; g.fillRect(W * .47, H * .83, W * .06, H * .07); break; }
+    case 'monolith':
+      drawRidges(g, W, H, s, R, 1, dark);
+      g.save(); g.translate(W * .5, H * .44); g.rotate(.06);
+      { const gr = g.createLinearGradient(-W * .16, 0, W * .16, 0); gr.addColorStop(0, '#000000'); gr.addColorStop(.85, mix(c2, '#000000', .3)); gr.addColorStop(1, rgba(c3, .9)); g.fillStyle = gr; }
+      g.beginPath(); g.ellipse(0, 0, W * .14, H * .23, 0, 0, 7); g.fill(); g.restore();
+      for (let i = 0; i < 3; i++) figure(g, W * (.43 + i * .06), H * .87, H * .045, sil, rim, sx, W);
+      break;
+    case 'planet': {
+      const pr = W * .85, px = W * .5, py = H * 1.2;
+      glow(g, px, py, pr * 1.2, c3, .35);
+      const gr = g.createRadialGradient(px - pr * .3, py - pr * .5, pr * .1, px, py, pr); gr.addColorStop(0, mix(c1, '#ffffff', .2)); gr.addColorStop(.7, mix(c1, c2, .75)); gr.addColorStop(1, c2);
+      g.fillStyle = gr; g.beginPath(); g.arc(px, py, pr, 0, 7); g.fill();
+      g.strokeStyle = rgba(c3, .85); g.lineWidth = W * .006; g.beginPath(); g.arc(px, py, pr, Math.PI * 1.1, Math.PI * 1.9); g.stroke();
+      g.save(); g.translate(W * .52, H * .55); g.rotate(-.5); figure(g, 0, 0, H * .09, sil, rim, sx, W); g.restore(); break; }
+    case 'duo':
+      g.fillStyle = sil; g.fillRect(0, H * .9, W, H * .1);
+      figure(g, W * .32, H * .93, H * .38, sil, rgba(c1, .9), 0, W, 1.05); figure(g, W * .68, H * .93, H * .38, sil, rgba(c3, .9), 1, W, 1.05); break;
+  }
+
+  g = fg.getContext('2d');
+  const [wt, fam, upper] = FONTS[s.font] || FONTS.unb;
+  const title = upper ? s.title.toUpperCase() : s.title;
+  const bottom = s.layout === 1;
+  g.fillStyle = '#f6efe4'; g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+  g.shadowColor = 'rgba(0,0,0,.6)'; g.shadowBlur = W * .04;
+  g.font = `600 ${W * .024}px "JetBrains Mono", monospace`; g.letterSpacing = `${W * .012}px`;
+  g.globalAlpha = .85; g.fillText(s.top || '', W / 2, H * .065); g.globalAlpha = 1;
+  g.letterSpacing = s.font === 'anton' ? `${W * .006}px` : '0px';
+  const fit = (txt, max, start) => { let sz = start; g.font = `${wt} ${sz}px ${fam}`; while (g.measureText(txt).width > max && sz > 8) { sz -= W * .005; g.font = `${wt} ${sz}px ${fam}`; } return sz; };
+  let lines = [title], sz = fit(title, W * .86, W * (s.font === 'anton' ? .26 : .17));
+  if (sz < W * .1 && title.includes(' ')) { const w = title.split(' '), h = Math.ceil(w.length / 2); lines = [w.slice(0, h).join(' '), w.slice(h).join(' ')]; sz = Math.min(fit(lines[0], W * .86, W * .2), fit(lines[1], W * .86, W * .2)); g.font = `${wt} ${sz}px ${fam}`; }
+  const ty = bottom ? H * .86 - (lines.length - 1) * sz * 1.02 : H * .1 + sz * .9;
+  lines.forEach((ln, i) => g.fillText(ln, W / 2, ty + i * sz * 1.02));
+  g.shadowBlur = 0;
+  g.font = `400 ${W * .021}px "JetBrains Mono", monospace`; g.letterSpacing = `${W * .01}px`; g.globalAlpha = .75;
+  g.fillText(s.year ? `${s.year} · ${String(s.lang).toUpperCase()}` : (s.top === 'ONE YOU LOVED' ? 'KRIS & PRASHANTH LOVED THIS' : 'A NEXT FRAME DUMMY'), W / 2, H * (bottom ? .895 : .9));
+  g.globalAlpha = .3;
+  for (let r = 0; r < 3; r++) { let x = W * .1; while (x < W * .9) { const w = W * (.02 + R() * .06); g.fillRect(x, H * (.925 + r * .016), Math.min(w, W * .9 - x), H * .006); x += w + W * .012; } }
+  g.globalAlpha = 1;
+  return { mid, fg };
+}
+
+/* =============== STATE =============== */
+let cat = 'all', pace = 'any', typ = 'all', reel = [];
+const hiddenAtLoad = new Set();
+const buildReel = () => { reel = FILMS.filter(f => (typ === 'all' || f.type === typ) && (cat === 'all' || f.cat === cat) && (pace === 'any' || f.pace === pace) && !hiddenAtLoad.has(f.id)).sort((a, b) => b.m - a.m); };
+buildReel();
+
+/* =============== RENDERER =============== */
+const isMobile = matchMedia('(pointer:coarse)').matches || innerWidth < 760;
+const canvas = document.getElementById('gl');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+const DPR = Math.min(devicePixelRatio, isMobile ? 1.6 : 1.75);
+renderer.setPixelRatio(DPR); renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.NeutralToneMapping;
+const scene = new THREE.Scene();
+const BG = new THREE.Color(0x04060a); scene.background = BG.clone();
+scene.fog = new THREE.FogExp2(0x04060a, .028);
+const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, .05, 200);
+
+/* =============== ATLASES =============== */
+const COLS = 40, ROWS = 7, RAD = 16, PW = 2, PH = 3, STEP = (PW + .38) / RAD, ROWH = PH + .42;
+const AC = 8, AR = 10, CELLS = AC * AR;
+const CW = isMobile ? 192 : 256, CH = CW * 1.5;
+const ovC = mk(AC * CW, AR * CH), ovG = ovC.getContext('2d');
+const ovTex = new THREE.CanvasTexture(ovC); ovTex.colorSpace = THREE.SRGBColorSpace; ovTex.anisotropy = 8;
+const bgRT = new THREE.WebGLRenderTarget(AC * CW, AR * CH, { colorSpace: THREE.SRGBColorSpace, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter, magFilter: THREE.LinearFilter });
+bgRT.texture.anisotropy = 8;
+const specs = new Array(CELLS);
+
+const quadScene = new THREE.Scene(), quadCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+const kaU = () => ({ uSty: { value: 0 }, uC1: { value: new THREE.Color() }, uC2: { value: new THREE.Color() }, uC3: { value: new THREE.Color() }, uSun: { value: new THREE.Vector2() }, uSeed: { value: 0 }, uRain: { value: 0 }, uTime: { value: 0 } });
+const setKa = (U, s, seed) => { U.uSty.value = s.sty; U.uC1.value.set(s.pal[0]); U.uC2.value.set(s.pal[1]); U.uC3.value.set(s.pal[2]); U.uSun.value.set(s.sun[0], s.sun[1]); U.uSeed.value = seed; U.uRain.value = s.rain || 0; };
+const KA_FRAG = KEYART + `uniform float uSty, uSeed, uRain, uTime; uniform vec3 uC1, uC2, uC3; uniform vec2 uSun; varying vec2 vUv;
+  void main(){ gl_FragColor = vec4(keyart(vUv, uSty, uC1, uC2, uC3, uSun, uSeed, uRain, uTime), 1.); }`;
+const quadU = kaU();
+const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({ uniforms: quadU, depthTest: false, vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }`, fragmentShader: KA_FRAG }));
+quad.frustumCulled = false; quadScene.add(quad);
+
+/* =============== WALL =============== */
+const N = COLS * ROWS;
+const cellOf = new Float32Array(N * 2), hiA = new Float32Array(N), hovA = new Float32Array(N), textA = new Float32Array(N * 3), rA = new Float32Array(N * 4);
+for (let i = 0; i < N; i++) { rA[i * 4] = Math.random(); rA[i * 4 + 1] = Math.random(); rA[i * 4 + 2] = Math.random(); rA[i * 4 + 3] = Math.random(); textA[i * 3 + 2] = -999; }
+const wallGeo = new THREE.InstancedBufferGeometry().copy(new THREE.PlaneGeometry(PW, PH));
+const aCell = new THREE.InstancedBufferAttribute(cellOf, 2), aHi = new THREE.InstancedBufferAttribute(hiA, 1), aHov = new THREE.InstancedBufferAttribute(hovA, 1), aText = new THREE.InstancedBufferAttribute(textA, 3);
+aHi.setUsage(THREE.DynamicDrawUsage); aHov.setUsage(THREE.DynamicDrawUsage);
+wallGeo.setAttribute('aCell', aCell); wallGeo.setAttribute('aHi', aHi); wallGeo.setAttribute('aHov', aHov); wallGeo.setAttribute('aText', aText); wallGeo.setAttribute('aR', new THREE.InstancedBufferAttribute(rA, 4));
+const wallU = { uBg: { value: bgRT.texture }, uOv: { value: ovTex }, uGrid: { value: new THREE.Vector2(AC, AR) }, uDim: { value: .55 }, uScan: { value: -9 }, uScanAmt: { value: 0 }, uTime: { value: 0 },
+  uIT: { value: 0 }, uIntroOn: { value: 1 }, uTileS: { value: .16 }, fogColor: { value: scene.fog.color }, fogDensity: { value: scene.fog.density } };
+const wallMat = new THREE.ShaderMaterial({
+  uniforms: wallU,
+  vertexShader: `attribute vec2 aCell; attribute float aHi; attribute float aHov; attribute vec3 aText; attribute vec4 aR;
+    uniform vec2 uGrid; uniform float uIT, uIntroOn, uTileS;
+    varying vec2 vUv; varying vec2 vL; varying float vHi; varying float vHov; varying vec3 vW; varying float vDepth; varying float vFlash; varying float vVis;
+    vec3 rotA(vec3 v, vec3 k, float a){ return v*cos(a) + cross(k, v)*sin(a) + k*dot(k, v)*(1. - cos(a)); }
+    void main(){
+      vec3 p = position * (1. + aHov*.07); p.z += aHov*.35 + max(aHi, 0.)*.12;
+      vL = uv; vHi = aHi; vHov = aHov;
+      vUv = vec2((aCell.x + uv.x) / uGrid.x, 1. - (aCell.y + 1. - uv.y) / uGrid.y);
+      vec4 w = modelMatrix * instanceMatrix * vec4(p, 1.);
+      vFlash = 0.; vVis = 1.;
+      if (uIntroOn > .5) {
+        float a1 = clamp((uIT - .9 - aR.x) / 1.15, 0., 1.); float e1 = 1. - pow(1. - a1, 4.);
+        float a2 = clamp((uIT - 3.85 - aR.y*.5) / 1.25, 0., 1.); float e2 = a2*a2*(3. - 2.*a2);
+        vec3 ax = normalize(vec3(aR.z - .5, aR.w - .5, .6));
+        float spin = (1. - e1)*(5. + aR.z*8.) + sin(e2*3.14159)*(1.5 + aR.w*3.);
+        vec3 lp = rotA(position * mix(uTileS, 1., e2), ax, spin);
+        float ang = aR.z*6.2831 + (1. - e1)*3.5;
+        vec3 start = vec3(cos(ang)*(5. + aR.w*10.), sin(ang)*(4. + aR.w*8.), -60. - aR.x*30.);
+        vec3 tp = mix(start, aText, e1) + lp;
+        vec3 pos = mix(tp, w.xyz, e2);
+        pos += normalize(w.xyz - aText + 1e-3) * sin(e2*3.14159) * 2.5;
+        w = vec4(pos, 1.);
+        vVis = step(.001, a1) * step(-500., aText.z);
+        float lockT = uIT - .9 - aR.x - 1.15;
+        vFlash = (lockT > 0. ? exp(-lockT*4.) : 0.) * (1. - e2) * 1.4 + sin(e2*3.14159)*.35 + (1. - e1)*step(.001, a1)*1.2;
+      }
+      vW = w.xyz; vec4 mv = viewMatrix * w; vDepth = -mv.z; gl_Position = projectionMatrix * mv;
+    }`,
+  fragmentShader: `uniform sampler2D uBg, uOv; uniform float uDim, uScan, uScanAmt, uTime, fogDensity; uniform vec3 fogColor;
+    varying vec2 vUv; varying vec2 vL; varying float vHi; varying float vHov; varying vec3 vW; varying float vDepth; varying float vFlash; varying float vVis;
+    void main(){
+      if (vHi < -.5 || vVis < .5) discard;
+      vec3 col = texture2D(uBg, vUv).rgb; vec4 ov = texture2D(uOv, vUv); col = mix(col, ov.rgb, ov.a);
+      float lit = clamp(max(vHi, vHov), 0., 1.);
+      col *= mix(uDim, 1.05, lit);
+      float ang = atan(vW.x, -vW.z);
+      col += vec3(.25,.85,1.) * exp(-pow(ang*2. - uScan, 2.)*6.) * uScanAmt * .35;
+      float e = min(min(vL.x, 1. - vL.x), min(vL.y, 1. - vL.y)*1.5);
+      vec3 ec = vHi > 1.5 ? vec3(1.) : vec3(.37,.94,1.);
+      col += ec * (smoothstep(.035, 0., e)*2.2 + smoothstep(.12, 0., e)*.25) * clamp(vHi, 0., 1.);
+      col += vec3(.55,.95,1.) * vFlash * (.6 + smoothstep(.06, 0., e)*1.5);
+      float f = 1. - exp(-pow(fogDensity * vDepth, 2.));
+      gl_FragColor = vec4(mix(col, fogColor, f * (1. - lit*.8)), 1.);
+    }`,
+});
+const wall = new THREE.InstancedMesh(wallGeo, wallMat, N); wall.frustumCulled = false; scene.add(wall);
+const idx = (c, r) => r * COLS + c;
+const C0 = Math.floor(COLS / 2), R0 = Math.floor(ROWS / 2);
+{
+  const o = new THREE.Object3D();
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const th = (c - C0) * STEP, y = (r - R0) * ROWH + ((c & 1) ? .5 : 0);
+    o.position.set(RAD * Math.sin(th), y, -RAD * Math.cos(th)); o.rotation.set(0, -th, 0); o.updateMatrix(); wall.setMatrixAt(idx(c, r), o.matrix);
+  }
+}
+const slotIdx = {}, NF = FILMS.length, NS = SEEDS.length;
+{
+  const R = rng(7), cand = [];
+  for (let r = 0; r < ROWS; r++) for (let dc = -9; dc <= 9; dc++) cand.push({ i: idx(C0 + dc, r), d: Math.abs(dc) * 1.0 + Math.abs(r - R0) * 1.15 + R() * 1.6 });
+  cand.sort((x, y) => x.d - y.d);
+  for (let i = 0; i < N; i++) { const c = NF + NS + Math.floor(R() * (CELLS - NF - NS)); cellOf[i * 2] = c % AC; cellOf[i * 2 + 1] = Math.floor(c / AC); }
+  const order = [...FILMS.map((f, k) => ({ id: f.id, c: k })), ...SEEDS.map((s, k) => ({ id: s.id, c: NF + k }))];
+  // interleave: films take every other near slot so picks are spread among the posters they're linked to
+  let fi = 0, si = NF;
+  for (let n = 0; n < order.length; n++) {
+    const o = (n % 2 === 0 && fi < NF) || si >= order.length ? order[fi++] : order[si++];
+    const i = cand[n].i; slotIdx[o.id] = i; cellOf[i * 2] = o.c % AC; cellOf[i * 2 + 1] = Math.floor(o.c / AC);
+  }
+  aCell.needsUpdate = true;
+}
+const SEEDMAP = Object.fromEntries(SEEDS.map(s => [s.id, s]));
+
+/* =============== HERO POSTER (live key art + layers) + SHARDS =============== */
+const hero = new THREE.Group(), tilt = new THREE.Group(); hero.add(tilt); scene.add(hero);
+const heroU = Object.assign(kaU(), { uOp: { value: 0 }, uPoster: { value: null }, uHas: { value: 0 } });
+const heroBg = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), new THREE.ShaderMaterial({
+  uniforms: heroU, transparent: true, depthWrite: false,
+  vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+  fragmentShader: KEYART + `uniform float uSty, uSeed, uRain, uTime, uOp, uHas; uniform sampler2D uPoster; uniform vec3 uC1, uC2, uC3; uniform vec2 uSun; varying vec2 vUv;
+    void main(){
+      vec3 c = uHas > .5 ? texture2D(uPoster, vUv).rgb : keyart(vUv, uSty, uC1, uC2, uC3, uSun, uSeed, uRain, uTime);
+      float b = exp(-pow((vUv.x*.7 + vUv.y*.7) - (fract(uTime*.09)*2.6 - .4), 2.) * 50.);
+      vec3 irid = .5 + .5*cos(6.2831*(vUv.y*.8 + uTime*.05 + vec3(0., .33, .67)));
+      gl_FragColor = vec4(c + irid*b*.14, uOp);
+    }`,
+}));
+const layerMat = () => new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, opacity: 0 });
+const heroMid = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), layerMat()); heroMid.position.z = .16; heroMid.scale.setScalar(1.035);
+const heroFg = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), layerMat()); heroFg.position.z = .34; heroFg.scale.setScalar(.985);
+tilt.add(heroBg, heroMid, heroFg);
+if (isMobile) { heroMid.position.z = .09; heroFg.position.z = .18; }
+
+const GX = 12, GY = 18, sp = [], suv = [], sc = [], sr = [];
+for (let y = 0; y < GY; y++) for (let x = 0; x < GX; x++) {
+  const x0 = x / GX, x1 = (x + 1) / GX, y0 = y / GY, y1 = (y + 1) / GY;
+  for (const t of [[[x0, y0], [x1, y0], [x1, y1]], [[x0, y0], [x1, y1], [x0, y1]]]) {
+    const cx = (t[0][0] + t[1][0] + t[2][0]) / 3, cy = (t[0][1] + t[1][1] + t[2][1]) / 3, r = [Math.random(), Math.random(), Math.random()];
+    for (const [u, v] of t) { sp.push((u - .5) * PW, (v - .5) * PH, 0); suv.push(u, v); sc.push((cx - .5) * PW, (cy - .5) * PH, 0); sr.push(...r); }
+  }
+}
+const shardGeo = new THREE.BufferGeometry();
+shardGeo.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3)); shardGeo.setAttribute('uv', new THREE.Float32BufferAttribute(suv, 2));
+shardGeo.setAttribute('aC', new THREE.Float32BufferAttribute(sc, 3)); shardGeo.setAttribute('aR', new THREE.Float32BufferAttribute(sr, 3));
+const heroRT = new THREE.WebGLRenderTarget(isMobile ? 512 : 768, isMobile ? 768 : 1152, { colorSpace: THREE.SRGBColorSpace });
+const shardU = { map: { value: heroRT.texture }, ov: { value: null }, uT: { value: 0 } };
+const shards = new THREE.Mesh(shardGeo, new THREE.ShaderMaterial({
+  uniforms: shardU, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+  vertexShader: `attribute vec3 aC; attribute vec3 aR; uniform float uT; varying vec2 vUv; varying float vA; varying float vE;
+    vec3 rot(vec3 v, vec3 k, float a){ return v*cos(a) + cross(k, v)*sin(a) + k*dot(k, v)*(1. - cos(a)); }
+    void main(){
+      vUv = uv; float d = length(aC.xy) / 1.8;
+      float tt = clamp((uT - d*.18 - aR.z*.12) / .7, 0., 1.); float e = tt*tt*(1.6 - .6*tt);
+      vec3 local = rot(position - aC, normalize(aR*2. - 1. + 1e-3), e*(3. + aR.x*9.)) * (1. - e*.35);
+      vec3 dir = normalize(vec3(aC.x*.9 + (aR.x - .5)*1.2, aC.y*.7 + (aR.y - .5)*1.2, 1.4 + aR.z*2.4));
+      vA = 1. - smoothstep(.55, 1., tt); vE = e;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(aC + local + dir*e*(2.5 + aR.y*6.), 1.);
+    }`,
+  fragmentShader: `uniform sampler2D map, ov; varying vec2 vUv; varying float vA; varying float vE;
+    void main(){ vec3 c = texture2D(map, vUv).rgb; vec4 o = texture2D(ov, vUv); c = mix(c, o.rgb, o.a);
+      gl_FragColor = vec4(c*(1. + vE*1.6) + vec3(.3,.8,1.)*vE*.25, vA); }`,
+}));
+shards.frustumCulled = false; shards.visible = false; scene.add(shards);
+
+/* =============== POST =============== */
+const composer = new EffectComposer(renderer); composer.setPixelRatio(DPR); composer.setSize(innerWidth, innerHeight);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), .45, .5, .78); composer.addPass(bloom);
+composer.addPass(new OutputPass());
+const fx = new ShaderPass({
+  uniforms: { tDiffuse: { value: null }, uG: { value: 0 }, uTime: { value: 0 } },
+  vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }`,
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float uG, uTime; varying vec2 vUv;
+    float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233)))*43758.5453); }
+    void main(){
+      vec2 uv = vUv;
+      float row = floor(uv.y*28.); float blk = step(.72, h(vec2(row, floor(uTime*22.)))) * uG;
+      uv.x += (h(vec2(row, floor(uTime*31.))) - .5) * .09 * blk;
+      vec2 d = uv - .5; float o = .0015 + uG*.018 + dot(d,d)*.006;
+      vec3 c = vec3(texture2D(tDiffuse, uv + vec2(o, 0.)).r, texture2D(tDiffuse, uv).g, texture2D(tDiffuse, uv - vec2(o, 0.)).b);
+      c *= 1. - uG*.18*step(.5, fract(uv.y*240.));
+      c += (h(vUv*913. + fract(uTime)*37.) - .5) * .045;
+      c *= 1. - smoothstep(.3, .95, length(d*vec2(1.,1.2))) * .55;
+      gl_FragColor = vec4(c, 1.);
+    }`,
+});
+composer.addPass(fx);
+
+/* =============== TIMELINE =============== */
+const INTRO = .75, ANA = 1.7;
+const units = () => ANA + reel.length + .55;
+let target = 0, raw = 0, prevRaw = 0;
+let introT = 0, introOn = true, introStarted = false;
+function readScroll() { if (introOn) { target = 0; return; } const max = document.documentElement.scrollHeight - innerHeight; target = (max > 0 ? Math.min(Math.max(scrollY / max, 0), 1) : 0) * units(); }
+function sizeScroll() { document.getElementById('scroll').style.height = ((units() + 1) * 105) + 'vh'; }
+sizeScroll(); addEventListener('scroll', readScroll, { passive: true });
+
+/* =============== TMDB (posters, stills, trailers) — data/tmdb.json is built by a GitHub Action; the API key never ships =============== */
+let TM = { items: {}, fillers: [] };
+const IMG = 'https://image.tmdb.org/t/p/';
+const tm = id => TM.items[id] || {};
+async function loadTMDB() { try { const r = await fetch('data/tmdb.json', { cache: 'no-cache' }); if (r.ok) { const j = await r.json(); if (j && j.items) TM = j; } } catch (e) {} }
+const loadImg = url => new Promise(res => { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => res(im); im.onerror = () => res(null); im.src = url; });
+function drawCover(g, im, x, y, w, h) { const k = Math.max(w / im.width, h / im.height), iw = im.width * k, ih = im.height * k; g.drawImage(im, x + (w - iw) / 2, y + (h - ih) / 2, iw, ih); }
+async function applyRealPosters() {
+  const jobs = [];
+  for (let c = 0; c < CELLS; c++) {
+    const path = c < NF ? tm(FILMS[c].id).poster : c < NF + NS ? tm(SEEDS[c - NF].id).poster : (TM.fillers || [])[c - NF - NS];
+    if (path) jobs.push([c, path]);
+  }
+  let n = 0;
+  await Promise.all(jobs.map(async ([c, path]) => {
+    const im = await loadImg(IMG + 'w342' + path); if (!im) return;
+    const x = (c % AC) * CW, y = Math.floor(c / AC) * CH; ovG.clearRect(x, y, CW, CH); drawCover(ovG, im, x, y, CW, CH);
+    if (++n % 8 === 0) ovTex.needsUpdate = true;
+  }));
+  ovTex.needsUpdate = true;
+}
+const posterTex = {}, texLoader = new THREE.TextureLoader(); texLoader.setCrossOrigin('anonymous');
+function heroPoster(f) {
+  const p = tm(f.id).poster; if (!p) return null;
+  if (!(f.id in posterTex)) { posterTex[f.id] = null; texLoader.load(IMG + 'w780' + p, t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; posterTex[f.id] = t; }, undefined, () => {}); }
+  return posterTex[f.id];
+}
+const blankTex = new THREE.DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1); blankTex.needsUpdate = true;
+// stills slideshow
+let stillT = 0, stillI = 0, stillFlip = false;
+function startStills(f) {
+  clearInterval(stillT); const bd = (tm(f.id).backdrops || []).slice(0, 6), box = $('stillbox');
+  box.classList.toggle('on', bd.length > 0); $('sbPlay').style.display = tm(f.id).trailer ? '' : 'none';
+  if (!bd.length) return;
+  const show = () => { const a = stillFlip ? $('sbA') : $('sbB'), b = stillFlip ? $('sbB') : $('sbA'); stillFlip = !stillFlip;
+    a.style.backgroundImage = `url(${IMG}w780${bd[stillI % bd.length]})`; a.classList.remove('on'); void a.offsetWidth; a.classList.add('on'); b.classList.remove('on'); stillI++; };
+  stillI = 0; show(); if (bd.length > 1) stillT = setInterval(show, 4500);
+}
+function playTrailer(f) {
+  if (!f) return; const key = tm(f.id).trailer;
+  if (!key) { window.open(trailerURL(f), '_blank', 'noopener'); return; }
+  $('tframe').src = `https://www.youtube-nocookie.com/embed/${key}?autoplay=1&rel=0&playsinline=1&modestbranding=1`;
+  $('tmodal').classList.add('on'); if (A && A.on) A.out.gain.setTargetAtTime(0, A.ctx.currentTime, .2);
+}
+function closeTrailer() { $('tmodal').classList.remove('on'); $('tframe').src = 'about:blank'; if (A && A.on) A.out.gain.setTargetAtTime(.8, A.ctx.currentTime, .4); }
+
+/* =============== UI =============== */
+const $ = id => document.getElementById(id);
+const ui = $('ui'), svg = $('links'), seedsEl = $('seeds'), tagsEl = $('tags'), stillsEl = $('stills');
+const seedImg = {}, filmImg = {};
+const tagEls = SEEDS.map(s => { const d = document.createElement('div'); d.className = 'tag'; d.textContent = 'LOVED · ' + s.title.toUpperCase(); tagsEl.appendChild(d); return d; });
+const pickTag = document.createElement('div'); pickTag.className = 'tag pick'; tagsEl.appendChild(pickTag);
+function wave(p) { const n = p === 'fast' ? 11 : p === 'medium' ? 5.5 : 2.5, a = p === 'fast' ? 9 : 7; let d = 'M0 11'; for (let x = 0; x <= 200; x += 2) d += ` L${x} ${(11 - Math.sin(x / 200 * n * 6.283) * a).toFixed(1)}`; return d; }
+function score(label, v, max, fmt) {
+  if (v == null) return `<div class="sc"><em class="na">n/a</em><span>${label}</span><i><u></u></i></div>`;
+  const p = v / max * 100; return `<div class="sc"><em>${fmt(v)}</em><span>${label}</span><i><u class="${p < 50 ? 'low' : p >= 78 ? 'hi' : ''}" data-w="${p}"></u></i></div>`;
+}
+let curFilm = null;
+const fmtMins = m => `${Math.floor(m / 60)}h ${m % 60}m`;
+const metaLine = f => `${f.lang} · ${f.year} · ${f.type === 'tv' ? f.span : fmtMins(f.mins)}`;
+const trailerURL = f => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(`${f.title} ${f.year} official trailer`);
+function fillPanel(i) {
+  const f = reel[i]; curFilm = f;
+  document.documentElement.style.setProperty('--accent', f.pal[0]);
+  $('pK').innerHTML = `Pick <b>${String(i + 1).padStart(2, '0')}</b> / ${String(reel.length).padStart(2, '0')}`;
+  $('pMeta').textContent = metaLine(f);
+  $('pTitle').textContent = f.title; $('pGenre').textContent = f.genre;
+  $('pMatch').innerHTML = `${f.m}<sup>%</sup>`; $('pFor').textContent = 'match for you two'; $('pTake').textContent = f.take;
+  $('pWhy').innerHTML = f.why.map(([sid, r], k) => `<li><i>${k + 1}</i><div><b>Because you loved ${SEEDMAP[sid].title}.</b> <span>${r}.</span></div></li>`).join('');
+  $('pScores').innerHTML = score('IMDb', f.imdb, 10, v => v.toFixed(1)) + score('RT critics', f.rtc, 100, v => v + '%') + score('RT crowd', f.rta, 100, v => v + '%') + (f.lb != null || !tm(f.id).vote ? score('Letterbxd', f.lb, 5, v => v.toFixed(1)) : score('TMDB', tm(f.id).vote, 10, v => v.toFixed(1)));
+  setTimeout(() => $('pScores').querySelectorAll('u[data-w]').forEach(u => u.style.width = u.dataset.w + '%'), 60);
+  const pi = { slow: 1, medium: 2, fast: 3 }[f.pace]; [...$('pSegs').children].forEach((b, k) => b.classList.toggle('on', k < pi));
+  $('pPace').textContent = f.pace.toUpperCase(); $('pWave').setAttribute('d', wave(f.pace));
+  $('pReddit').textContent = f.buzz;
+  startStills(f);
+  seedsEl.innerHTML = f.why.map(([sid], k) => `<div class="seed"><img src="${seedImg[sid] || ''}" alt=""><span>${k + 1} · ${SEEDMAP[sid].title}</span></div>`).join('');
+  const bd = tm(f.id).backdrops || [];
+  stillsEl.style.backgroundImage = bd.length ? `url(${IMG}w780${bd[0]})` : (filmImg[f.id] ? `url(${filmImg[f.id]})` : 'none');
+  $('panel').scrollTop = 0;
+  paintStatus();
+}
+function segBind(id, fn) { $(id).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; $(id).querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); fn(b.dataset.v); }); }
+function refilter() {
+  buildReel(); sizeScroll(); lastFilmIdx = -1;
+  $('empty').style.display = reel.length ? 'none' : 'block'; $('hpace').textContent = pace;
+  if (raw > ANA - .05) { const max = document.documentElement.scrollHeight - innerHeight; const r = ANA + .02; scrollTo(0, r / units() * max); target = raw = prevRaw = r; }
+}
+segBind('cat', v => { cat = v; refilter(); });
+segBind('typ', v => { typ = v; refilter(); });
+segBind('pace', v => { pace = v; refilter(); });
+
+/* =============== SWIPES: saved on this device =============== */
+const store = { map: {} };
+const FILMMAP = Object.fromEntries(FILMS.map(f => [f.id, f]));
+try { store.map = JSON.parse(localStorage.getItem('nf-swipes') || '{}'); } catch (e) {}
+const saveLocal = () => { try { localStorage.setItem('nf-swipes', JSON.stringify(store.map)); } catch (e) {} };
+function applyHiddenAtLoad() { hiddenAtLoad.clear(); for (const [id, v] of Object.entries(store.map)) if (v && (v.state === 'seen' || v.state === 'nope')) hiddenAtLoad.add(id); }
+applyHiddenAtLoad(); buildReel(); sizeScroll();
+function onStoreChange() {
+  const n = Object.values(store.map).filter(v => v && v.state === 'want').length;
+  $('wlCount').textContent = n; paintStatus(); if ($('drawer').classList.contains('on')) paintDrawer();
+}
+
+let toastT = 0;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1800); }
+async function setSwipe(id, val) {
+  if (val) store.map[id] = val; else delete store.map[id];
+  saveLocal(); onStoreChange();
+}
+$('sbPlay').addEventListener('click', () => playTrailer(curFilm));
+$('tclose').addEventListener('click', closeTrailer);
+$('tmodal').addEventListener('click', e => { if (e.target.id === 'tmodal') closeTrailer(); });
+function paintStatus() {
+  if (!curFilm) return; const v = store.map[curFilm.id];
+  $('acts').querySelectorAll('button[data-a]').forEach(b => b.classList.toggle('on', !!v && v.state === b.dataset.a));
+  $('seenq').classList.toggle('on', !!v && v.state === 'seen' && !v.vibe);
+  $('pStatus').textContent = !v ? '' : v.state === 'want' ? '♥ On your watchlist' : v.state === 'nope' ? '✕ Marked not for you' : v.vibe === 'up' ? '◉ Seen it · loved it' : v.vibe === 'down' ? '◉ Seen it · not a fan' : '◉ Seen it';
+}
+function nextFilm() {
+  const fRaw = raw - ANA, fi = Math.floor(fRaw), max = document.documentElement.scrollHeight - innerHeight;
+  const r = Math.min(ANA + fi + 1 + .55, units() - .01);
+  window.scrollTo({ top: r / units() * max, behavior: 'smooth' });
+}
+function act(a, auto = true) {
+  if (!curFilm) return; const f = curFilm, cur = store.map[f.id];
+  if (cur && cur.state === a && a !== 'seen') { setSwipe(f.id, null); toast('Undone'); return; }
+  setSwipe(f.id, { state: a, vibe: null, at: Date.now() });
+  stampFlash(a);
+  if (a === 'want') { toast(`♥ ${f.title} added to your watchlist`); if (auto) setTimeout(nextFilm, 650); }
+  if (a === 'nope') { toast(`✕ Skipping ${f.title}`); if (auto) setTimeout(nextFilm, 650); }
+  if (a === 'seen') toast('Seen it — did you like it?');
+}
+$('acts').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.a === 'trailer') playTrailer(curFilm); else act(b.dataset.a); });
+$('seenq').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || !curFilm) return; setSwipe(curFilm.id, { state: 'seen', vibe: b.dataset.v, at: Date.now() }); toast(b.dataset.v === 'up' ? 'Noted — more like this' : 'Noted — less like this'); setTimeout(nextFilm, 600); });
+const STAMPS = { want: ['WATCHLIST ♥', '#7dffb2'], nope: ['NOT FOR US', '#ff5a6e'], seen: ['SEEN IT', '#5ef0ff'] };
+function stampShow(a, op) { const st = $('stamp'); const [t, c] = STAMPS[a]; st.textContent = t; st.style.color = c; st.style.opacity = op; st.style.transform = `translate(-50%,-50%) rotate(${a === 'nope' ? 12 : -12}deg) scale(${.9 + op * .15})`; }
+function stampFlash(a) { stampShow(a, 1); setTimeout(() => { $('stamp').style.transition = 'opacity .5s'; $('stamp').style.opacity = 0; setTimeout(() => $('stamp').style.transition = '', 520); }, 380); }
+addEventListener('keydown', e => { if (!ui.classList.contains('show-hold')) return; if (e.key === 'ArrowRight') act('want'); else if (e.key === 'ArrowLeft') act('nope'); else if (e.key === 'ArrowUp') { e.preventDefault(); act('seen'); } });
+// drawer
+function paintDrawer() {
+  const items = Object.entries(store.map).filter(([id, v]) => v && FILMMAP[id]).sort((a, b) => (b[1].at || 0) - (a[1].at || 0));
+  const row = (id, v, extra) => { const f = FILMMAP[id]; return `<div class="ditem"><img src="${filmImg[id] || ''}" alt=""><div><b>${f.title}</b><small>${metaLine(f)}${extra || ''}</small></div><button data-trailer="${id}">▶ Trailer</button><button data-undo="${id}">Undo</button></div>`; };
+  const sec = (title, list, extra) => `<div class="dsec"><h4>${title} · ${list.length}</h4>${list.length ? list.map(([id, v]) => row(id, v, extra && extra(v))).join('') : '<div class="dempty">Nothing here yet.</div>'}</div>`;
+  $('dBody').innerHTML = sec('♥ Watchlist', items.filter(x => x[1].state === 'want'))
+    + sec('◉ Seen', items.filter(x => x[1].state === 'seen'), v => v.vibe === 'up' ? ' · 👍' : v.vibe === 'down' ? ' · 👎' : '')
+    + sec('✕ Not for us', items.filter(x => x[1].state === 'nope'))
+    + `<p class="dempty" style="margin-top:18px">Saved on this phone. Shared lists with Prashanth come with Versus mode.</p>`;
+}
+$('wlBtn').addEventListener('click', () => { paintDrawer(); $('drawer').classList.add('on'); });
+$('dClose').addEventListener('click', () => $('drawer').classList.remove('on'));
+$('dBody').addEventListener('click', e => { const tb = e.target.closest('button[data-trailer]'); if (tb) { playTrailer(FILMMAP[tb.dataset.trailer]); return; } const b = e.target.closest('button[data-undo]'); if (b) { setSwipe(b.dataset.undo, null); toast('Removed — it will show up again next visit'); } });
+// touch swipe on the poster (left / right)
+let sw = null;
+addEventListener('touchstart', e => { if (!ui.classList.contains('show-hold') || e.target.closest('#panel, .drawer, .top')) { sw = null; return; } const t = e.touches[0]; sw = { x: t.clientX, y: t.clientY, dx: 0 }; }, { passive: true });
+addEventListener('touchmove', e => { if (!sw) return; const t = e.touches[0]; sw.dx = t.clientX - sw.x; const dy = t.clientY - sw.y; if (Math.abs(dy) > Math.abs(sw.dx) * 1.2) { sw = null; $('stamp').style.opacity = 0; return; } if (Math.abs(sw.dx) > 20) stampShow(sw.dx > 0 ? 'want' : 'nope', Math.min(Math.abs(sw.dx) / 140, 1)); }, { passive: true });
+addEventListener('touchend', () => { if (!sw) return; const dx = sw.dx; sw = null; if (Math.abs(dx) > 110) act(dx > 0 ? 'want' : 'nope'); else $('stamp').style.opacity = 0; });
+onStoreChange();
+
+/* =============== SOUND =============== */
+let A = null;
+function initAudio() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const out = ctx.createGain(); out.gain.value = 0; out.connect(ctx.destination);
+  const comp = ctx.createDynamicsCompressor(); comp.connect(out);
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate), ch = buf.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
+  const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; src.start();
+  const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 1.2; bp.frequency.value = 400; const wg = ctx.createGain(); wg.gain.value = 0; src.connect(bp).connect(wg).connect(comp);
+  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 380; lp.Q.value = 4; const dg = ctx.createGain(); dg.gain.value = 0; lp.connect(dg).connect(comp);
+  [55, 82.4, 110.6, 164.6].forEach((f, i) => { const o = ctx.createOscillator(); o.type = i % 2 ? 'sawtooth' : 'triangle'; o.frequency.value = f; o.detune.value = (i - 1.5) * 8; const g = ctx.createGain(); g.gain.value = .07 / (i + 1); o.connect(g).connect(lp); o.start(); });
+  return { ctx, out, bus: comp, bp, wg, lp, dg, buf, on: false };
+}
+function noiseHit(t, dur, type, f0, f1, gain, q = 1) {
+  const c = A.ctx, n = c.createBufferSource(); n.buffer = A.buf; const f = c.createBiquadFilter(); f.type = type; f.Q.value = q;
+  f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  const g = c.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + Math.min(.04, dur * .3)); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  n.connect(f).connect(g).connect(A.bus); n.start(t, Math.random()); n.stop(t + dur + .05);
+}
+function tone(t, dur, type, f0, f1, gain, attack = .005) {
+  const c = A.ctx, o = c.createOscillator(); o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  const g = c.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + attack); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g).connect(A.bus); o.start(t); o.stop(t + dur + .05);
+}
+function introSfx() {
+  if (!A || !A.on) return; const c = A.ctx, t0 = c.currentTime + .03;
+  tone(t0, 1.6, 'sine', 70, 26, .9); noiseHit(t0, .8, 'lowpass', 400, 60, .5);
+  noiseHit(t0 + .9, 1.95, 'bandpass', 180, 5200, .28, 2.5);
+  tone(t0 + .9, 1.95, 'sawtooth', 55, 220, .05, 1.6);
+  for (let i = 0; i < 34; i++) tone(t0 + 2.05 + Math.random() * 1.0, .05, 'square', 1800 + Math.random() * 1800, 1500, .025);
+  const H = t0 + 2.9;
+  tone(H, 2.4, 'sine', 55, 32, 1.0); noiseHit(H, 1.2, 'highpass', 6000, 1500, .35);
+  [110, 164.8, 261.6, 329.6].forEach(f => { const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = (Math.random() - .5) * 14; const lpf = c.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.setValueAtTime(2600, H); lpf.frequency.exponentialRampToValueAtTime(220, H + 2.6); const g = c.createGain(); g.gain.setValueAtTime(.0001, H); g.gain.exponentialRampToValueAtTime(.07, H + .02); g.gain.exponentialRampToValueAtTime(.0001, H + 2.8); o.connect(lpf).connect(g).connect(A.bus); o.start(H); o.stop(H + 3); });
+  for (let i = 0; i < 3; i++) noiseHit(t0 + 3.1 + i * .22, .12, 'highpass', 3000, 2000, .15);
+  noiseHit(t0 + 3.85, 1.5, 'bandpass', 5000, 160, .45, 1.4); tone(t0 + 3.85, 1.2, 'sine', 90, 30, .6);
+  A.dg.gain.setValueAtTime(0, t0); A.dg.gain.linearRampToValueAtTime(1, t0 + 6);
+}
+function shatterSfx() {
+  if (!A || !A.on) return; const t = A.ctx.currentTime;
+  noiseHit(t, .6, 'highpass', 4000, 2000, .35);
+  for (let i = 0; i < 5; i++) tone(t + Math.random() * .25, .5, 'sine', 1800 + Math.random() * 3200, 1700, .06);
+}
+function lockSfx() { if (!A || !A.on) return; const t = A.ctx.currentTime; tone(t, .35, 'sine', 440, 430, .08); tone(t + .07, .35, 'sine', 660, 650, .08); }
+function setSoundUI() { [$('snd'), $('snd2')].forEach(b => b.classList.toggle('on', !!(A && A.on))); $('sndt').textContent = A && A.on ? 'Sound on' : 'Sound'; }
+function soundOn(on) {
+  try { if (!A) A = initAudio(); A.on = on; A.ctx.resume(); A.out.gain.setTargetAtTime(on ? .8 : 0, A.ctx.currentTime, .2); if (on && !introOn) A.dg.gain.setTargetAtTime(1, A.ctx.currentTime, .5); }
+  catch (e) { $('sndt').textContent = 'No audio'; }
+  setSoundUI();
+}
+$('snd').addEventListener('click', () => soundOn(!(A && A.on))); $('snd2').addEventListener('click', () => soundOn(!(A && A.on)));
+
+/* =============== INPUT =============== */
+const mouse = new THREE.Vector2(0, 0), mouseS = new THREE.Vector2(), mouseNDC = new THREE.Vector2(9, 9);
+let drag = null; const dragOff = new THREE.Vector2();
+addEventListener('pointermove', e => { mouse.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); mouseNDC.copy(mouse); });
+addEventListener('touchstart', e => { const t = e.touches[0]; drag = [t.clientX, t.clientY]; }, { passive: true });
+addEventListener('touchmove', e => { const t = e.touches[0]; if (drag) dragOff.set((t.clientX - drag[0]) / innerWidth, (t.clientY - drag[1]) / innerHeight); }, { passive: true });
+addEventListener('touchend', () => { drag = null; });
+const ray = new THREE.Raycaster();
+
+/* =============== RESIZE =============== */
+let shiftX = 0, shiftY = 0;
+function resize() {
+  const w = innerWidth, h = innerHeight; renderer.setSize(w, h); composer.setSize(w, h); bloom.setSize(w, h);
+  camera.aspect = w / h; shiftX = w / h > 1.1 ? .15 : 0; shiftY = w / h < 1 ? .07 : 0;
+  camera.setViewOffset(w, h, w * shiftX, h * shiftY, w, h); camera.updateProjectionMatrix();
+}
+resize(); addEventListener('resize', resize);
+
+/* =============== BUILD POSTERS =============== */
+const heroCache = {};
+const tex = c => { const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; };
+function buildHero(f, k) {
+  if (heroCache[f.id]) return heroCache[f.id];
+  const W = isMobile ? 720 : 1024, O = overlay(f, W, W * 1.5, 1000 + k);
+  const comp = mk(W, W * 1.5), cg = comp.getContext('2d'); cg.drawImage(O.mid, 0, 0); cg.drawImage(O.fg, 0, 0);
+  heroCache[f.id] = { mid: tex(O.mid), fg: tex(O.fg), comp: tex(comp), seed: 3 + k * 1.7 };
+  return heroCache[f.id];
+}
+function renderCell(c) {
+  const s = specs[c], x = (c % AC) * CW, y = (AR - 1 - Math.floor(c / AC)) * CH;
+  setKa(quadU, s, s.seedK); quadU.uTime.value = 4 + c;
+  bgRT.viewport.set(x, y, CW, CH); bgRT.scissor.set(x, y, CW, CH); bgRT.scissorTest = true;
+  renderer.setRenderTarget(bgRT); renderer.render(quadScene, quadCam); renderer.setRenderTarget(null);
+}
+function thumb(c) {
+  const x = (c % AC) * CW, y = (AR - 1 - Math.floor(c / AC)) * CH, px = new Uint8Array(CW * CH * 4);
+  renderer.readRenderTargetPixels(bgRT, x, y, CW, CH, px);
+  const cv = mk(CW, CH), g = cv.getContext('2d'), id = g.createImageData(CW, CH);
+  for (let r = 0; r < CH; r++) id.data.set(px.subarray((CH - 1 - r) * CW * 4, (CH - r) * CW * 4), r * CW * 4);
+  g.putImageData(id, 0, 0); g.drawImage(ovC, (c % AC) * CW, Math.floor(c / AC) * CH, CW, CH, 0, 0, CW, CH);
+  return cv.toDataURL('image/jpeg', .85);
+}
+async function buildAll() {
+  try { await Promise.race([Promise.all(['400 40px Anton', '800 40px Unbounded', 'italic 700 40px "Playfair Display"', '800 40px Syne', '600 20px "JetBrains Mono"', '400 20px "JetBrains Mono"'].map(f => document.fonts.load(f))), new Promise(r => setTimeout(r, 2500))]); } catch (e) {}
+  const total = CELLS + FILMS.length; let done = 0;
+  const tick = async () => { done++; $('lbar').style.width = (done / total * 100) + '%'; if (done % 4 === 0) await new Promise(r => setTimeout(r, 0)); };
+  const R = rng(99);
+  for (let c = 0; c < CELLS; c++) {
+    let s;
+    if (c < NF) s = FILMS[c]; else if (c < NF + NS) s = SEEDS[c - NF];
+    else {
+      const w = WORDS[(c - NF - NS) % WORDS.length], font = ['anton', 'unb', 'play', 'syne'][Math.floor(R() * 4)];
+      s = { title: font === 'play' ? w[0] + w.slice(1).toLowerCase() : w, kind: KINDS[Math.floor(R() * KINDS.length)], sty: Math.floor(R() * 8), rain: R() < .2 ? 1 : 0, font, layout: R() < .45 ? 1 : 0,
+        pal: PALS[Math.floor(R() * PALS.length)], sun: [.2 + R() * .6, .18 + R() * .4], top: TOPS[Math.floor(R() * TOPS.length)] };
+    }
+    s.seedK = c * 1.37 + .5; specs[c] = s;
+    const O = overlay(s, CW, CH, 31 * c + 7);
+    ovG.drawImage(O.mid, (c % AC) * CW, Math.floor(c / AC) * CH); ovG.drawImage(O.fg, (c % AC) * CW, Math.floor(c / AC) * CH);
+    renderCell(c);
+    await tick();
+  }
+  bgRT.scissorTest = false; ovTex.needsUpdate = true;
+  for (let c = 0; c < NF + NS; c++) { const id = c < NF ? FILMS[c].id : SEEDS[c - NF].id, p = tm(id).poster; const url = p ? IMG + 'w185' + p : thumb(c); if (c < NF) filmImg[id] = url; else seedImg[id] = url; if (c % 6 === 5) await new Promise(r => setTimeout(r, 0)); }
+  applyRealPosters();
+  for (let k = 0; k < FILMS.length; k++) { const h = buildHero(FILMS[k], k); h.seed = specs[k].seedK; await tick(); }
+  $('loader').classList.add('done');
+}
+let heroRTFor = null;
+function renderHeroRT(f) {
+  if (heroRTFor === f.id) return; heroRTFor = f.id;
+  setKa(quadU, f, heroCache[f.id].seed); quadU.uTime.value = heroU.uTime.value;
+  renderer.setRenderTarget(heroRT); renderer.render(quadScene, quadCam); renderer.setRenderTarget(null);
+}
+
+/* =============== INTRO =============== */
+const PLANE_Z = -3;
+function setupIntroText() {
+  const pt = (x, y) => { const v = new THREE.Vector3(x, y, .5).unproject(camera).sub(camera.position).normalize(); return camera.position.clone().addScaledVector(v, (PLANE_Z - camera.position.z) / v.z); };
+  const L = pt(-1, 0), Rr = pt(1, 0), C = pt(0, camera.aspect < 1 ? .12 : .08);
+  const portrait = camera.aspect < 1;
+  const lines = portrait ? ['NEXT', 'FRA', 'ME'] : ['NEXT', 'FRAME'];
+  const TW = 1200, TH = portrait ? 1100 : 560, c = mk(TW, TH), g = c.getContext('2d');
+  let fs = 300; g.font = `800 ${fs}px Unbounded, Impact, sans-serif`;
+  const widest = () => Math.max(...lines.map(l => g.measureText(l).width));
+  while (widest() > TW * .94 && fs > 40) { fs -= 6; g.font = `800 ${fs}px Unbounded, Impact, sans-serif`; }
+  while (lines.length * fs * 1.02 > TH * .95) { fs -= 6; g.font = `800 ${fs}px Unbounded, Impact, sans-serif`; }
+  g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  lines.forEach((l, i) => g.fillText(l, TW / 2, TH / 2 + (i - (lines.length - 1) / 2) * fs * 1.02));
+  const d = g.getImageData(0, 0, TW, TH).data;
+  let step = 60, pts = [];
+  for (; step > 6; step -= 1) {
+    pts = [];
+    for (let y = step * .75; y < TH; y += step * 1.5) for (let x = step / 2; x < TW; x += step) if (d[((y | 0) * TW + (x | 0)) * 4 + 3] > 128) pts.push([x, y]);
+    if (pts.length >= N * .88) break;
+  }
+  for (let i = pts.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pts[i], pts[j]] = [pts[j], pts[i]]; }
+  pts = pts.slice(0, N);
+  const worldW = Math.min((Rr.x - L.x) * (portrait ? .9 : .82), 12), k = worldW / TW;
+  wallU.uTileS.value = (step * k * .94) / PW;
+  const order = [...Array(N).keys()].sort(() => Math.random() - .5);
+  order.forEach((inst, n) => {
+    if (n < pts.length) {
+      const [x, y] = pts[n];
+      textA[inst * 3] = C.x + (x - TW / 2) * k; textA[inst * 3 + 1] = C.y - (y - TH / 2) * k; textA[inst * 3 + 2] = PLANE_Z;
+      rA[inst * 4] = (x / TW) * .7 + Math.random() * .25;
+    } else { const a = Math.random() * 6.283, r = worldW * (.62 + Math.random() * .5); textA[inst * 3] = C.x + Math.cos(a) * r; textA[inst * 3 + 1] = C.y + Math.sin(a) * r * .6; textA[inst * 3 + 2] = PLANE_Z - 6 - Math.random() * 10; rA[inst * 4] = Math.random(); }
+  });
+  aText.needsUpdate = true; wallGeo.attributes.aR.needsUpdate = true;
+}
+function startIntro(withSound) {
+  scrollTo(0, 0); document.body.classList.add('lock');
+  introOn = true; introT = 0; introStarted = true; wallU.uIntroOn.value = 1;
+  target = raw = prevRaw = 0;
+  if (withSound) soundOn(true);
+  setupIntroText(); introSfx();
+  $('gate').classList.add('gone'); $('skip').classList.add('on');
+}
+function endIntro() {
+  if (!introOn) return;
+  introOn = false; wallU.uIntroOn.value = 0; document.body.classList.remove('lock');
+  $('skip').classList.remove('on'); ['boot', 'iline', 'isub', 'ibars'].forEach(id => $(id).classList.remove('on')); $('iflash').style.opacity = 0;
+  $('gate').classList.add('gone');
+  if (A && A.on) A.dg.gain.setTargetAtTime(1, A.ctx.currentTime, .4);
+}
+$('go').addEventListener('click', () => startIntro(true));
+$('quiet').addEventListener('click', () => startIntro(false));
+$('skip').addEventListener('click', () => { introT = 99; });
+$('replay').addEventListener('click', () => startIntro(!!(A && A.on)));
+
+/* =============== LOOP =============== */
+const ss = THREE.MathUtils.smoothstep, lerp = THREE.MathUtils.lerp, clamp = THREE.MathUtils.clamp;
+const easeIO = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const clock = new THREE.Clock();
+const M = new THREE.Matrix4(), IM = new THREE.Matrix4(), P = new THREE.Vector3(), Q = new THREE.Quaternion(), S = new THREE.Vector3(), Nn = new THREE.Vector3();
+const camP = new THREE.Vector3(), camL = new THREE.Vector3(), ovP = new THREE.Vector3(), ovL = new THREE.Vector3(), cP = new THREE.Vector3(), tmp = new THREE.Vector3();
+const hiT = new Float32Array(N), unscale = new THREE.Matrix4();
+let lastFilmIdx = -1, wasShatter = false, wasLocked = false;
+
+function poseOf(i, outP, outN, outQ) { wall.getMatrixAt(i, IM); M.multiplyMatrices(wall.matrixWorld, IM); M.decompose(outP, outQ, S); outN.set(0, 0, 1).applyQuaternion(outQ); }
+function toScreen(v) { tmp.copy(v).project(camera); return [(tmp.x * .5 + .5) * innerWidth, (-tmp.y * .5 + .5) * innerHeight, tmp.z < 1]; }
+function fitDist(fov) { const tn = Math.tan(THREE.MathUtils.degToRad(fov / 2)); return camera.aspect < 1 ? (PW * 1.12) / (2 * tn * camera.aspect) : (PH / .78) / (2 * tn); }
+const pathPool = [];
+function path(k) { if (!pathPool[k]) { const g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); g.innerHTML = '<path class="base"/><path class="pulse"/><circle r="9"/><text></text>'; svg.appendChild(g); pathPool[k] = g; } return pathPool[k]; }
+function setPath(k, x1, y1, x2, y2, op, label) {
+  const g = path(k); g.style.opacity = op; if (op <= .01) return;
+  const mx = (x1 + x2) / 2, d = `M${x1} ${y1} C${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`;
+  g.children[0].setAttribute('d', d); g.children[1].setAttribute('d', d);
+  const show = !!label; g.children[2].style.display = g.children[3].style.display = show ? '' : 'none';
+  if (show) { g.children[2].setAttribute('cx', x2); g.children[2].setAttribute('cy', y2); g.children[3].setAttribute('x', x2); g.children[3].setAttribute('y', y2); g.children[3].textContent = label; }
+}
+
+function frame() {
+  const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime;
+  if (introOn && introStarted) { introT += dt; if (introT > 5.3) endIntro(); }
+  raw += (target - raw) * (1 - Math.exp(-dt * 3.6));
+  const vel = Math.abs(raw - prevRaw) / Math.max(dt, 1e-3); prevRaw = raw;
+  const n = reel.length, portrait = camera.aspect < 1;
+
+  wall.rotation.y = Math.sin(t * .05) * .025 + (1 - ss(raw, 0, INTRO)) * .25 * Math.sin(t * .1) * (introOn ? 0 : 1);
+  wall.updateMatrixWorld();
+  wallU.uTime.value = t; heroU.uTime.value = t; wallU.uIT.value = introT;
+
+  const fRaw = raw - ANA, fi = Math.floor(fRaw), u = fRaw - fi;
+  const inFilm = !introOn && fRaw >= 0 && fi < n;
+  const d = inFilm ? ss(u, 0, .32) : 0, sh = inFilm ? ss(u, .72, .96) : 0;
+  const ana = introOn ? 0 : ss(raw, INTRO - .1, INTRO + .25) * (1 - ss(raw, ANA - .15, ANA + .05));
+  const film = inFilm ? reel[fi] : null;
+
+  const baseFov = portrait ? 58 : 46, intro = 1 - ss(raw, 0, INTRO);
+  const pan = Math.sin(clamp((raw - INTRO) / (ANA - INTRO), 0, 1) * Math.PI) * .9;
+  const still = introOn ? 0 : 1;
+  ovP.set(Math.sin(t * .11) * .3 * still, Math.sin(t * .13) * .2 * still, (portrait ? 1 : 3.2) + intro * 2.5);
+  ovL.set(Math.sin(pan * 1.3) * 5 + mouseS.x * 1.2 * still, mouseS.y * .8 * still - intro * 1.2, -RAD);
+
+  let e = 0;
+  if (film) {
+    const ti = slotIdx[film.id]; poseOf(ti, P, Nn, Q);
+    cP.copy(P).addScaledVector(Nn, fitDist(baseFov) * (1 - .035 * ss(u, .32, .72)));
+    const ed = easeIO(d), es = easeIO(sh); e = ed * (1 - es);
+    camP.lerpVectors(ovP, cP, e); camP.y += Math.sin(Math.PI * e) * .9;
+    camL.lerpVectors(ovL, P, Math.max(clamp(ss(d, 0, .55) * (1 - ss(sh, .3, 1)), 0, 1), e));
+    camera.position.copy(camP); camera.up.set(0, 1, 0); camera.lookAt(camL);
+    camera.rotateZ(Math.sin(Math.PI * e) * .06 * (fi % 2 ? 1 : -1));
+    camera.fov = baseFov + Math.sin(Math.PI * e) * 16 + vel * 2;
+    const H = heroCache[film.id] || buildHero(film, FILMS.indexOf(film));
+    setKa(heroU, film, H.seed); heroMid.material.map = H.mid; heroFg.material.map = H.fg;
+    const PT = heroPoster(film); heroU.uHas.value = PT ? 1 : 0; heroU.uPoster.value = PT || blankTex;
+    shardU.ov.value = PT ? blankTex : H.comp; shardU.map.value = PT || heroRT.texture;
+    hero.position.copy(P).addScaledVector(Nn, .06); hero.quaternion.copy(Q);
+    const vis = ss(d, .86, 1) * (1 - ss(sh, 0, .02));
+    heroU.uOp.value = vis; heroMid.material.opacity = PT ? 0 : vis; heroFg.material.opacity = PT ? 0 : vis; hero.visible = vis > .001;
+    const mx = isMobile ? Math.sin(t * .6) * .06 + dragOff.x * .5 : mouseS.x * .2, my = isMobile ? Math.sin(t * .45) * .04 - dragOff.y * .4 : mouseS.y * .14;
+    tilt.rotation.set(-my, mx, 0);
+    if (sh > .001 && !PT) renderHeroRT(film); else heroRTFor = null;
+    shards.visible = sh > .001 && sh < .999; shards.position.copy(hero.position); shards.quaternion.copy(Q); shardU.uT.value = sh;
+    if (sh > .02 && !wasShatter) shatterSfx(); wasShatter = sh > .02;
+    const locked = d > .97 && sh < .02; if (locked && !wasLocked) lockSfx(); wasLocked = locked;
+  } else {
+    camera.position.copy(ovP); camera.up.set(0, 1, 0); camera.lookAt(ovL);
+    camera.fov = baseFov + vel * 3;
+    if (introOn) { const it = introT; camera.fov += Math.exp(-Math.max(it - 2.9, 0) * 5) * (it > 2.9 ? 7 : 0) + ss(it, 3.8, 4.5) * (1 - ss(it, 4.5, 5.3)) * 10; camera.rotateZ(Math.sin(t * 40) * .004 * Math.exp(-Math.abs(it - 2.95) * 6)); }
+    hero.visible = false; shards.visible = false; wasShatter = false; wasLocked = false;
+  }
+  if (!isMobile && !film && !introOn) camera.position.x += mouseS.x * .4;
+  camera.updateProjectionMatrix();
+  if (!drag) dragOff.multiplyScalar(.9);
+  mouseS.lerp(mouse, 1 - Math.exp(-dt * 4));
+
+  // highlights
+  hiT.fill(0);
+  if (ana > 0) SEEDS.slice(0, 12).forEach(s => hiT[slotIdx[s.id]] = ana);
+  if (film) { film.why.forEach(([sid]) => hiT[slotIdx[sid]] = Math.sin(Math.PI * clamp(d * 1.3, 0, 1)) * (1 - sh)); hiT[slotIdx[film.id]] = 2; }
+  const endA = introOn ? 0 : ss(raw, ANA + n - .1, ANA + n + .2);
+  if (endA > 0) reel.forEach(f => hiT[slotIdx[f.id]] = 2 * endA);
+  let hoverIdx = -1;
+  if (!film && !introOn && !isMobile && mouseNDC.x < 5) { ray.setFromCamera(mouseNDC, camera); const hit = ray.intersectObject(wall); if (hit.length) hoverIdx = hit[0].instanceId; }
+  const hideIdx = film && (d > .9 || sh > 0) && sh < .999 ? slotIdx[film.id] : -1;
+  for (let i = 0; i < N; i++) {
+    const cur = Math.max(hiA[i], 0); hiA[i] = cur + (hiT[i] - cur) * (1 - Math.exp(-dt * 6));
+    hovA[i] += ((i === hoverIdx ? 1 : 0) - hovA[i]) * (1 - Math.exp(-dt * 10));
+  }
+  if (hideIdx >= 0) hiA[hideIdx] = -1;
+  aHi.needsUpdate = true; aHov.needsUpdate = true;
+  const normalDim = lerp(.62, .32, Math.max(ana, e)) * (1 - e * .5);
+  wallU.uDim.value = introOn ? lerp(1, .62, ss(introT, 3.9, 5.2)) : normalDim;
+  wallU.uScanAmt.value = ana; wallU.uScan.value = ((t * .9) % 3) * 2 - 3;
+
+  const want = film ? new THREE.Color(film.pal[1]).lerp(new THREE.Color(film.pal[0]), .18).multiplyScalar(.5 * e) : BG;
+  scene.background.lerp(want, 1 - Math.exp(-dt * 3)); scene.fog.color.copy(scene.background);
+
+  // post
+  let gl = Math.sin(Math.PI * sh) + Math.max(0, vel - .6) * .2;
+  let flash = 0;
+  if (introOn && introStarted) {
+    const it = introT;
+    gl += (it > 2.9 && it < 3.85 ? (Math.random() > .82 ? .9 : .06) : 0) + Math.exp(-Math.abs(it - 2.9) * 9) * .8 + Math.exp(-Math.abs(it - 3.85) * 7) * .7;
+    flash = Math.exp(-Math.max(it - 2.9, 0) * 7) * (it > 2.9 ? .55 : 0) + Math.exp(-Math.max(it - 3.85, 0) * 5) * (it > 3.85 ? .45 : 0);
+    $('boot').classList.toggle('on', it > .15 && it < 1.2); $('iline').classList.toggle('on', it > .3 && it < 1.25);
+    $('ibars').classList.toggle('on', it > .8 && it < 4.6); $('isub').classList.toggle('on', it > 3.0 && it < 4.4);
+  }
+  $('iflash').style.opacity = flash;
+  fx.uniforms.uG.value = clamp(gl * .7, 0, .95); fx.uniforms.uTime.value = t;
+  bloom.strength = .4 + Math.sin(Math.PI * sh) * .6 + ana * .3 + (introOn ? .5 + flash * 2 : 0);
+  stillsEl.style.opacity = sh > .05 && sh < .7 ? (Math.random() > .4 ? .55 * Math.sin(Math.PI * sh / .7) : 0) : 0;
+  if (sh > .05 && sh < .7) stillsEl.style.backgroundPosition = `${Math.random() * 100}% ${Math.random() * 100}%`;
+
+  // UI
+  $('hero').classList.toggle('off', introOn || raw > .18);
+  $('cue').style.opacity = introOn || raw > .1 ? 0 : 1;
+  const anaShow = !introOn && raw > INTRO && raw < ANA - .05;
+  $('hud').classList.toggle('show', anaShow);
+  const hudRows = $('hud').querySelectorAll('div'), hp = clamp((raw - INTRO) / (ANA - INTRO - .2), 0, 1);
+  hudRows.forEach((r, k) => r.classList.toggle('on', hp > k / hudRows.length));
+
+  SEEDS.forEach((s, k) => {
+    const el = tagEls[k], i = slotIdx[s.id];
+    let op = k < 10 ? ana : 0;
+    if (film && film.why.some(w => w[0] === s.id)) op = Math.max(op, Math.sin(Math.PI * clamp(d * 1.3, 0, 1)) * (1 - sh));
+    if (op > .02) { poseOf(i, P, Nn, Q); tmp.set(0, PH / 2 + .25, 0).applyQuaternion(Q).add(P); const [x, y, ok] = toScreen(tmp); el.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%)`; el.style.opacity = ok ? op : 0; }
+    else el.style.opacity = 0;
+  });
+  let pk = 0;
+  if (ana > .05) {
+    const pts = SEEDS.slice(0, 10).map(s => { poseOf(slotIdx[s.id], P, Nn, Q); return toScreen(P); });
+    for (let k = 0; k < pts.length - 1; k++) { const a = pts[k], b = pts[k + 1]; setPath(pk++, a[0], a[1], b[0], b[1], a[2] && b[2] ? ana * .8 : 0); }
+  }
+  const hold = film && d > .97 && sh < .03;
+  if (film && !hold && d > .05 && sh < .5) {
+    poseOf(slotIdx[film.id], P, Nn, Q); const tp = toScreen(P);
+    film.why.forEach(([sid]) => { poseOf(slotIdx[sid], cP, Nn, Q); const a = toScreen(cP); setPath(pk++, a[0], a[1], tp[0], tp[1], a[2] && tp[2] ? Math.sin(Math.PI * clamp(d * 1.2, 0, 1)) * (1 - sh * 2) : 0); });
+  }
+  if (hold) {
+    const tiles = seedsEl.querySelectorAll('img');
+    unscale.makeScale(1 / .985, 1 / .985, 1);
+    film.why.forEach((w, k) => {
+      const img = tiles[k]; if (!img) return; const r = img.getBoundingClientRect();
+      const lx = portrait ? (k ? .22 : -.22) * PW : -PW / 2, ly = portrait ? PH * .05 : PH * (.2 - k * .3);
+      tmp.set(lx, ly, heroFg.position.z).applyMatrix4(heroFg.matrixWorld.clone().multiply(unscale)).project(camera);
+      const x2 = (tmp.x * .5 + .5) * innerWidth, y2 = (-tmp.y * .5 + .5) * innerHeight;
+      setPath(pk++, portrait ? r.left - 4 : r.right + 4, r.top + r.height / 2, x2, y2, 1, String(k + 1));
+    });
+  }
+  for (let k = pk; k < pathPool.length; k++) pathPool[k].style.opacity = 0;
+  if (film && d > .05 && d < .9) { poseOf(slotIdx[film.id], P, Nn, Q); tmp.set(0, -PH / 2 - .25, 0).applyQuaternion(Q).add(P); const [x, y] = toScreen(tmp); pickTag.textContent = `MATCH ${film.m}% · LOCKING ON`; pickTag.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%)`; pickTag.style.opacity = Math.sin(Math.PI * d / .9); }
+  else pickTag.style.opacity = 0;
+  if (film && fi !== lastFilmIdx) { fillPanel(fi); lastFilmIdx = fi; }
+  ui.classList.toggle('show-hold', !!hold);
+  ui.classList.toggle('intro', introOn);
+  $('endc').classList.toggle('show', endA > .5 && n > 0);
+
+  if (A && A.on) {
+    const now = A.ctx.currentTime, camSpeed = Math.min(vel * (film ? Math.sin(Math.PI * e) * 2 + .2 : .3), 1.5);
+    A.wg.gain.setTargetAtTime(introOn ? 0 : camSpeed * .35, now, .06); A.bp.frequency.setTargetAtTime(300 + camSpeed * 2600, now, .06);
+    A.lp.frequency.setTargetAtTime(260 + ana * 900 + e * 500, now, .2);
+  }
+
+  composer.render();
+  requestAnimationFrame(frame);
+}
+readScroll();
+loadTMDB().then(buildAll).then(() => requestAnimationFrame(frame));
+</script>
+
+</body>
+</html>

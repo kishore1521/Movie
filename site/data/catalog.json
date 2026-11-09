@@ -1,0 +1,562 @@
+[
+ {
+  "id": "talk",
+  "title": "Talk to Me",
+  "year": 2023,
+  "lang": "en",
+  "type": "movie",
+  "q": "Talk to Me"
+ },
+ {
+  "id": "busan",
+  "title": "Train to Busan",
+  "year": 2016,
+  "lang": "ko",
+  "type": "movie",
+  "q": "Train to Busan"
+ },
+ {
+  "id": "sinners",
+  "title": "Sinners",
+  "year": 2025,
+  "lang": "en",
+  "type": "movie",
+  "q": "Sinners"
+ },
+ {
+  "id": "descent",
+  "title": "The Descent",
+  "year": 2005,
+  "lang": "en",
+  "type": "movie",
+  "q": "The Descent"
+ },
+ {
+  "id": "ratsasan",
+  "title": "Ratsasan",
+  "year": 2018,
+  "lang": "ta",
+  "type": "movie",
+  "q": "Ratsasan"
+ },
+ {
+  "id": "salaar",
+  "title": "Salaar: Part 1",
+  "year": 2023,
+  "lang": "te",
+  "type": "movie",
+  "q": "Salaar Part 1 Ceasefire"
+ },
+ {
+  "id": "kill",
+  "title": "Kill",
+  "year": 2024,
+  "lang": "hi",
+  "type": "movie",
+  "q": "Kill"
+ },
+ {
+  "id": "pushpa",
+  "title": "Pushpa: The Rise",
+  "year": 2021,
+  "lang": "te",
+  "type": "movie",
+  "q": "Pushpa The Rise"
+ },
+ {
+  "id": "vikram",
+  "title": "Vikram",
+  "year": 2022,
+  "lang": "ta",
+  "type": "movie",
+  "q": "Vikram"
+ },
+ {
+  "id": "maharaja",
+  "title": "Maharaja",
+  "year": 2024,
+  "lang": "ta",
+  "type": "movie",
+  "q": "Maharaja"
+ },
+ {
+  "id": "madmax",
+  "title": "Mad Max: Fury Road",
+  "year": 2015,
+  "lang": "en",
+  "type": "movie",
+  "q": "Mad Max Fury Road"
+ },
+ {
+  "id": "drishyam",
+  "title": "Drishyam",
+  "year": 2013,
+  "lang": "ml",
+  "type": "movie",
+  "q": "Drishyam"
+ },
+ {
+  "id": "gamenight",
+  "title": "Game Night",
+  "year": 2018,
+  "lang": "en",
+  "type": "movie",
+  "q": "Game Night"
+ },
+ {
+  "id": "fall",
+  "title": "Fall",
+  "year": 2022,
+  "lang": "en",
+  "type": "movie",
+  "q": "Fall"
+ },
+ {
+  "id": "lovetoday",
+  "title": "Love Today",
+  "year": 2022,
+  "lang": "ta",
+  "type": "movie",
+  "q": "Love Today"
+ },
+ {
+  "id": "johnwick",
+  "title": "John Wick",
+  "year": 2014,
+  "lang": "en",
+  "type": "movie",
+  "q": "John Wick"
+ },
+ {
+  "id": "stree",
+  "title": "Stree",
+  "year": 2018,
+  "lang": "hi",
+  "type": "movie",
+  "q": "Stree"
+ },
+ {
+  "id": "12thfail",
+  "title": "12th Fail",
+  "year": 2023,
+  "lang": "hi",
+  "type": "movie",
+  "q": "12th Fail"
+ },
+ {
+  "id": "niceguys",
+  "title": "The Nice Guys",
+  "year": 2016,
+  "lang": "en",
+  "type": "movie",
+  "q": "The Nice Guys"
+ },
+ {
+  "id": "bringher",
+  "title": "Bring Her Back",
+  "year": 2025,
+  "lang": "en",
+  "type": "movie",
+  "q": "Bring Her Back"
+ },
+ {
+  "id": "crawl",
+  "title": "Crawl",
+  "year": 2019,
+  "lang": "en",
+  "type": "movie",
+  "q": "Crawl"
+ },
+ {
+  "id": "jathi",
+  "title": "Jathi Ratnalu",
+  "year": 2021,
+  "lang": "te",
+  "type": "movie",
+  "q": "Jathi Ratnalu"
+ },
+ {
+  "id": "prisoners",
+  "title": "Prisoners",
+  "year": 2013,
+  "lang": "en",
+  "type": "movie",
+  "q": "Prisoners"
+ },
+ {
+  "id": "sitaramam",
+  "title": "Sita Ramam",
+  "year": 2022,
+  "lang": "te",
+  "type": "movie",
+  "q": "Sita Ramam"
+ },
+ {
+  "id": "bramayugam",
+  "title": "Bramayugam",
+  "year": 2024,
+  "lang": "ml",
+  "type": "movie",
+  "q": "Bramayugam"
+ },
+ {
+  "id": "severance",
+  "title": "Severance",
+  "year": 2022,
+  "lang": "en",
+  "type": "tv",
+  "q": "Severance"
+ },
+ {
+  "id": "1899",
+  "title": "1899",
+  "year": 2022,
+  "lang": "en",
+  "type": "tv",
+  "q": "1899"
+ },
+ {
+  "id": "silo",
+  "title": "Silo",
+  "year": 2023,
+  "lang": "en",
+  "type": "tv",
+  "q": "Silo"
+ },
+ {
+  "id": "kingdom",
+  "title": "Kingdom",
+  "year": 2019,
+  "lang": "ko",
+  "type": "tv",
+  "q": "Kingdom"
+ },
+ {
+  "id": "hillhouse",
+  "title": "The Haunting of Hill House",
+  "year": 2018,
+  "lang": "en",
+  "type": "tv",
+  "q": "The Haunting of Hill House"
+ },
+ {
+  "id": "squidgame",
+  "title": "Squid Game",
+  "year": 2021,
+  "lang": "ko",
+  "type": "tv",
+  "q": "Squid Game"
+ },
+ {
+  "id": "darkmatter",
+  "title": "Dark Matter",
+  "year": 2024,
+  "lang": "en",
+  "type": "tv",
+  "q": "Dark Matter"
+ },
+ {
+  "id": "yellowjackets",
+  "title": "Yellowjackets",
+  "year": 2021,
+  "lang": "en",
+  "type": "tv",
+  "q": "Yellowjackets"
+ },
+ {
+  "id": "paatallok",
+  "title": "Paatal Lok",
+  "year": 2020,
+  "lang": "hi",
+  "type": "tv",
+  "q": "Paatal Lok"
+ },
+ {
+  "id": "asur",
+  "title": "Asur",
+  "year": 2020,
+  "lang": "hi",
+  "type": "tv",
+  "q": "Asur"
+ },
+ {
+  "id": "kgf",
+  "title": "KGF",
+  "year": 2018,
+  "lang": "kn",
+  "type": "movie",
+  "q": "K.G.F Chapter 1"
+ },
+ {
+  "id": "inter",
+  "title": "Interstellar",
+  "year": 2014,
+  "lang": "en",
+  "type": "movie",
+  "q": "Interstellar"
+ },
+ {
+  "id": "quietplace",
+  "title": "A Quiet Place",
+  "year": 2018,
+  "lang": "en",
+  "type": "movie",
+  "q": "A Quiet Place"
+ },
+ {
+  "id": "hereditary",
+  "title": "Hereditary",
+  "year": 2018,
+  "lang": "en",
+  "type": "movie",
+  "q": "Hereditary"
+ },
+ {
+  "id": "smile",
+  "title": "Smile",
+  "year": 2022,
+  "lang": "en",
+  "type": "movie",
+  "q": "Smile"
+ },
+ {
+  "id": "underwater",
+  "title": "Underwater",
+  "year": 2020,
+  "lang": "en",
+  "type": "movie",
+  "q": "Underwater"
+ },
+ {
+  "id": "shallows",
+  "title": "The Shallows",
+  "year": 2016,
+  "lang": "en",
+  "type": "movie",
+  "q": "The Shallows"
+ },
+ {
+  "id": "weapons",
+  "title": "Weapons",
+  "year": 2025,
+  "lang": "en",
+  "type": "movie",
+  "q": "Weapons"
+ },
+ {
+  "id": "nosferatu",
+  "title": "Nosferatu",
+  "year": 2024,
+  "lang": "en",
+  "type": "movie",
+  "q": "Nosferatu"
+ },
+ {
+  "id": "dracula",
+  "title": "Dracula Untold",
+  "year": 2014,
+  "lang": "en",
+  "type": "movie",
+  "q": "Dracula Untold"
+ },
+ {
+  "id": "28yl",
+  "title": "28 Years Later",
+  "year": 2025,
+  "lang": "en",
+  "type": "movie",
+  "q": "28 Years Later"
+ },
+ {
+  "id": "extraction",
+  "title": "Extraction",
+  "year": 2020,
+  "lang": "en",
+  "type": "movie",
+  "q": "Extraction"
+ },
+ {
+  "id": "babydriver",
+  "title": "Baby Driver",
+  "year": 2017,
+  "lang": "en",
+  "type": "movie",
+  "q": "Baby Driver"
+ },
+ {
+  "id": "topgun",
+  "title": "Top Gun: Maverick",
+  "year": 2022,
+  "lang": "en",
+  "type": "movie",
+  "q": "Top Gun: Maverick"
+ },
+ {
+  "id": "mi4",
+  "title": "Mission: Impossible 4",
+  "year": 2011,
+  "lang": "en",
+  "type": "movie",
+  "q": "Mission Impossible Ghost Protocol"
+ },
+ {
+  "id": "thudarum",
+  "title": "Thudarum",
+  "year": 2025,
+  "lang": "ml",
+  "type": "movie",
+  "q": "Thudarum"
+ },
+ {
+  "id": "evaru",
+  "title": "Evaru",
+  "year": 2019,
+  "lang": "te",
+  "type": "movie",
+  "q": "Evaru"
+ },
+ {
+  "id": "dragon",
+  "title": "Dragon",
+  "year": 2025,
+  "lang": "ta",
+  "type": "movie",
+  "q": "Dragon"
+ },
+ {
+  "id": "arya2",
+  "title": "Arya 2",
+  "year": 2009,
+  "lang": "te",
+  "type": "movie",
+  "q": "Arya 2"
+ },
+ {
+  "id": "mahaan",
+  "title": "Mahaan",
+  "year": 2022,
+  "lang": "ta",
+  "type": "movie",
+  "q": "Mahaan"
+ },
+ {
+  "id": "horriblebosses",
+  "title": "Horrible Bosses",
+  "year": 2011,
+  "lang": "en",
+  "type": "movie",
+  "q": "Horrible Bosses"
+ },
+ {
+  "id": "rickystanicky",
+  "title": "Ricky Stanicky",
+  "year": 2024,
+  "lang": "en",
+  "type": "movie",
+  "q": "Ricky Stanicky"
+ },
+ {
+  "id": "wardogs",
+  "title": "War Dogs",
+  "year": 2016,
+  "lang": "en",
+  "type": "movie",
+  "q": "War Dogs"
+ },
+ {
+  "id": "whyhim",
+  "title": "Why Him?",
+  "year": 2016,
+  "lang": "en",
+  "type": "movie",
+  "q": "Why Him?"
+ },
+ {
+  "id": "chhichhore",
+  "title": "Chhichhore",
+  "year": 2019,
+  "lang": "hi",
+  "type": "movie",
+  "q": "Chhichhore"
+ },
+ {
+  "id": "superboys",
+  "title": "Superboys of Malegaon",
+  "year": 2025,
+  "lang": "hi",
+  "type": "movie",
+  "q": "Superboys of Malegaon"
+ },
+ {
+  "id": "tholiprema",
+  "title": "Tholi Prema",
+  "year": 2018,
+  "lang": "te",
+  "type": "movie",
+  "q": "Tholi Prema"
+ },
+ {
+  "id": "rabne",
+  "title": "Rab Ne Bana Di Jodi",
+  "year": 2008,
+  "lang": "hi",
+  "type": "movie",
+  "q": "Rab Ne Bana Di Jodi"
+ },
+ {
+  "id": "knivesout",
+  "title": "Knives Out",
+  "year": 2019,
+  "lang": "en",
+  "type": "movie",
+  "q": "Knives Out"
+ },
+ {
+  "id": "13lives",
+  "title": "13 Lives",
+  "year": 2022,
+  "lang": "en",
+  "type": "movie",
+  "q": "13 Lives"
+ },
+ {
+  "id": "from",
+  "title": "From",
+  "year": 2022,
+  "lang": "en",
+  "type": "tv",
+  "q": "From"
+ },
+ {
+  "id": "widowsbay",
+  "title": "Widow’s Bay",
+  "year": null,
+  "lang": "en",
+  "type": "tv",
+  "q": "Widow's Bay"
+ },
+ {
+  "id": "3bp",
+  "title": "3 Body Problem",
+  "year": 2024,
+  "lang": "en",
+  "type": "tv",
+  "q": "3 Body Problem"
+ },
+ {
+  "id": "dark",
+  "title": "Dark",
+  "year": 2017,
+  "lang": "de",
+  "type": "tv",
+  "q": "Dark"
+ },
+ {
+  "id": "moneyheist",
+  "title": "Money Heist",
+  "year": 2017,
+  "lang": "es",
+  "type": "tv",
+  "q": "Money Heist"
+ }
+]

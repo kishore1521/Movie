@@ -185,6 +185,16 @@
   .ditem div { flex:1; min-width:0; } .ditem b { display:block; font-weight:500; font-size:14px; } .ditem small { color:var(--dim); font-size:11.5px; }
   .ditem a, .ditem button { background:none; border:1px solid var(--faint); color:var(--fg); font-size:11px; padding:6px 10px; border-radius:99px; cursor:pointer; text-decoration:none; white-space:nowrap; }
   .dempty { color:var(--dim); font-size:13px; padding:6px 0; }
+  .sync { border:1px solid var(--faint); border-radius:14px; padding:12px 14px; margin:6px 0 4px; font-size:13px; color:var(--dim); line-height:1.5; }
+  .sync b { color:var(--fg); font-weight:500; } .sync .sdot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--dim); margin-right:7px; }
+  .sync .sdot.ok { background:#5ef0a0; } .sync .sdot.bad { background:#ff6b6b; }
+  .sync .srow { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+  .sync button { background:none; border:1px solid var(--faint); color:var(--fg); font:500 12px 'Space Grotesk', sans-serif; padding:7px 13px; border-radius:99px; cursor:pointer; }
+  .sync button.pri { background:var(--fg); color:#05070b; border-color:var(--fg); }
+  .coach input { display:block; width:100%; margin-top:10px; background:rgba(255,255,255,.06); border:1px solid var(--faint); color:var(--fg); font:400 15px 'Space Grotesk', sans-serif; padding:11px 13px; border-radius:12px; outline:none; }
+  .coach input:focus { border-color:rgba(94,240,255,.6); }
+  .coach .ghost { background:none; color:var(--dim); margin-top:6px; }
+  #syErr { color:#ff8a8a; font-size:12.5px; min-height:0; margin-top:8px; }
   @media (max-width:760px) {
     .acts { gap:6px; margin-top:10px; } .acts button, .acts a { padding:8px 10px; font-size:12px; }
     .acts button span { display:none; } .acts button.pri span { display:inline; }
@@ -382,7 +392,8 @@
   <div class="grid" id="grid"><div class="ghead"><div><h3>All picks</h3><small id="gSub"></small></div><button id="gClose" title="Close"><span data-ic="x"></span></button></div><div class="gbody" id="gBody"></div></div>
   <div class="tmodal" id="tmodal"><div class="tbox"><iframe id="tframe" title="Trailer" allow="autoplay; encrypted-media; picture-in-picture; fullscreen"></iframe></div><button id="tclose"><span data-ic="x"></span> Close</button></div>
   <div class="lbox" id="lbox"><button class="lbn" id="lbPrev" title="Previous"><span data-ic="chevL"></span></button><img id="lbImg" alt=""><button class="lbn" id="lbNext" title="Next"><span data-ic="chevR"></span></button><div class="lbbar"><span id="lbN"></span><button id="lbClose"><span data-ic="x"></span> Close</button></div></div>
-  <div class="drawer" id="drawer"><div class="dhead"><h3>Your lists</h3><button id="dClose" title="Close"><span data-ic="x"></span></button></div><div id="dBody"></div></div>
+  <div class="coach" id="syncM"><b>Keep your lists</b><p>Pick a name and a passcode (4+ characters). Use the same pair on any phone or browser and your lists come back. First time? This creates yours.</p><input id="syU" placeholder="Your name (e.g. kris)" autocapitalize="none" autocomplete="username" spellcheck="false"><input id="syP" type="password" placeholder="Passcode" autocomplete="current-password"><div id="syErr"></div><button id="syGo">Continue</button><button class="ghost" id="sySkip">Not now</button></div>
+  <div class="drawer" id="drawer"><div class="dhead"><h3>Your lists</h3><button id="dClose" title="Close"><span data-ic="x"></span></button></div><div class="sync" id="syncBox"></div><div id="dBody"></div></div>
 </div>
 
 <script type="module">
@@ -575,6 +586,34 @@ const IMG = 'https://image.tmdb.org/t/p/';
 const tm = id => TM.items[id] || {};
 async function loadTMDB() { try { const ctl = new AbortController(); setTimeout(() => ctl.abort(), 9000); const r = await fetch('data/tmdb.json', { cache: 'no-cache', signal: ctl.signal }); if (r.ok) { const j = await r.json(); if (j && j.items) TM = Object.assign({ fillers: [], fresh: [] }, j); } } catch (e) {} }
 await loadTMDB();
+/* =============== SYNC: your lists follow you (name + passcode; stored in a tiny free Cloudflare Worker) =============== */
+const SYNC_URL = 'https://rough-shadow-a961.kkanchan1106.workers.dev/';
+const jget = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
+const jset = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+let acct = jget('nf-acct', null), delm = jget('nf-del', {}), syncState = acct ? 'idle' : 'off';
+function mergeData(a, ad, b, bd) {
+  const map = {}, del = {}, ids = new Set([...Object.keys(a), ...Object.keys(b), ...Object.keys(ad), ...Object.keys(bd)]);
+  ids.forEach(id => {
+    const x = a[id], y = b[id], best = x && (!y || (x.at || 0) >= (y.at || 0)) ? x : y, dt = Math.max(ad[id] || 0, bd[id] || 0);
+    if (best && (best.at || 0) >= dt) map[id] = best; else if (dt) del[id] = dt;
+  });
+  return { map, del };
+}
+async function remote(method, body, a) {
+  a = a || acct; const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 6000);
+  try {
+    const r = await fetch(SYNC_URL + '?u=' + encodeURIComponent(a.u), { method, headers: { 'X-Pass': a.p }, body, signal: ctl.signal });
+    const j = await r.json().catch(() => ({})); return Object.assign({ status: r.status }, j);
+  } catch (e) { return { status: 0 }; } finally { clearTimeout(to); }
+}
+async function syncPull(a) {
+  if (!(a || acct)) return null;
+  const r = await remote('GET', null, a);
+  if (r.status !== 200) return r;
+  const d = r.data || {}, m = mergeData(jget('nf-swipes', {}), delm, d.map || {}, d.del || {});
+  jset('nf-swipes', m.map); delm = m.del; jset('nf-del', delm); r.merged = m; return r;
+}
+await Promise.race([syncPull(), new Promise(r => setTimeout(r, 4500))]);
 // Fresh picks: TMDB's recommendations for the titles you loved + this week's trending titles in your genres.
 const LANGN = { en:'English', hi:'Hindi', ta:'Tamil', te:'Telugu', ml:'Malayalam', kn:'Kannada', ko:'Korean', es:'Spanish', de:'German', ja:'Japanese' };
 const GEN = { 27:'Horror', 53:'Thriller', 80:'Crime', 9648:'Mystery', 28:'Action', 12:'Adventure', 35:'Comedy', 878:'Sci-Fi', 10765:'Sci-Fi & Fantasy', 10759:'Action & Adventure', 18:'Drama', 14:'Fantasy', 10749:'Romance', 16:'Animation', 99:'Documentary', 10751:'Family', 36:'History', 10752:'War', 37:'Western', 10402:'Music', 10768:'War & Politics', 10770:'TV Movie' };
@@ -1165,9 +1204,53 @@ let undoFn = null;
 function toast(msg, undo) { const t = $('toast'); $('toastT').textContent = msg; undoFn = undo || null; t.classList.toggle('undo', !!undo); t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => { t.classList.remove('on', 'undo'); undoFn = null; }, undo ? 5000 : 1900); }
 $('toastU').addEventListener('click', () => { const f = undoFn; $('toast').classList.remove('on', 'undo'); undoFn = null; if (f) f(); });
 async function setSwipe(id, val) {
-  if (val) store.map[id] = val; else delete store.map[id];
-  saveLocal(); onStoreChange();
+  if (val) { if (delm[id] && (val.at || 0) <= delm[id]) val = Object.assign({}, val, { at: Date.now() }); store.map[id] = val; delete delm[id]; }
+  else { delete store.map[id]; delm[id] = Date.now(); }
+  saveLocal(); jset('nf-del', delm); onStoreChange(); queuePush();
 }
+let pushT = 0; const queuePush = () => { if (acct) { clearTimeout(pushT); pushT = setTimeout(syncPush, 900); } };
+async function syncPush() {
+  if (!acct) return; const r = await remote('PUT', JSON.stringify({ map: store.map, del: delm, t: Date.now() }));
+  syncState = r.status === 200 ? 'ok' : r.status === 403 ? 'bad' : 'offline'; paintSync();
+}
+async function syncNow() {
+  if (!acct) return; syncState = 'busy'; paintSync(); saveLocal();
+  const r = await syncPull();
+  if (r && r.status === 200 && r.merged) { const before = JSON.stringify(store.map); store.map = r.merged.map; if (JSON.stringify(store.map) !== before) onStoreChange(); }
+  else { syncState = r && r.status === 403 ? 'bad' : 'offline'; paintSync(); return; }
+  await syncPush();
+}
+function paintSync() {
+  const b = $('syncBox'); if (!b) return;
+  if (!acct) { b.innerHTML = '<b>Not synced</b><br>Lists are only on this browser. Private tabs forget them. Sign in to keep them.<div class="srow"><button class="pri" id="syOpen">Sign in</button></div>'; return; }
+  const st = { ok: ['ok', 'Synced'], busy: ['', 'Syncing…'], idle: ['', 'Not synced yet'], offline: ['', 'Offline. Saved here, will sync later'], bad: ['bad', 'Wrong passcode. Sign in again'] }[syncState] || ['', ''];
+  b.innerHTML = `<span class="sdot ${st[0]}"></span><b>${acct.u}</b> · ${st[1]}<div class="srow"><button id="syNow">Sync now</button><button id="syOut">Sign out</button></div>`;
+}
+let syncSkip = false;
+function askSync() { if (acct || syncSkip || $('coach').classList.contains('on')) return; $('syncM').classList.add('on'); }
+async function syncLogin() {
+  const u = $('syU').value.trim().toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20), p = $('syP').value, err = $('syErr');
+  if (!u || p.length < 4) { err.textContent = 'Name and a passcode of 4+ characters, please.'; return; }
+  err.textContent = ''; $('syGo').textContent = 'Checking…';
+  const a = { u, p }, r = await syncPull(a);
+  $('syGo').textContent = 'Continue';
+  if (r && r.status === 403) { err.textContent = 'That name already has a different passcode.'; return; }
+  if (!r || r.status !== 200) { err.textContent = 'Can\u2019t reach the sync service. Try again in a moment.'; return; }
+  acct = a; jset('nf-acct', a); $('syncM').classList.remove('on');
+  if (r.merged) { store.map = r.merged.map; onStoreChange(); }
+  toast(r.exists ? 'Welcome back. Lists loaded' : 'Done. Your lists will follow you'); syncState = 'idle'; await syncPush(); paintSync();
+}
+$('syGo').addEventListener('click', syncLogin);
+$('syP').addEventListener('keydown', e => { if (e.key === 'Enter') syncLogin(); });
+$('sySkip').addEventListener('click', () => { syncSkip = true; $('syncM').classList.remove('on'); });
+$('syncBox').addEventListener('click', e => {
+  const id = e.target.closest('button') && e.target.closest('button').id;
+  if (id === 'syOpen') { $('drawer').classList.remove('on'); syncSkip = false; $('syncM').classList.add('on'); }
+  else if (id === 'syNow') syncNow();
+  else if (id === 'syOut') { acct = null; try { localStorage.removeItem('nf-acct'); } catch (e) {} paintSync(); toast('Signed out. Lists stay on this browser'); }
+});
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncNow(); else if (acct) syncPush(); });
+
 $('sbPlay').addEventListener('click', () => playTrailer(curFilm));
 $('tclose').addEventListener('click', closeTrailer);
 $('tmodal').addEventListener('click', e => { if (e.target.id === 'tmodal') closeTrailer(); });
@@ -1206,7 +1289,8 @@ $('gClose').addEventListener('click', closeGrid);
 [$('gridBtn'), $('gridBtn2'), $('wallB'), $('heroGrid')].forEach(b => b.addEventListener('click', () => $('grid').classList.contains('on') ? closeGrid() : openGrid()));
 // first-time tips
 let coachShown = false; try { coachShown = !!localStorage.getItem('nf-coach'); } catch (e) {}
-$('coachOk').addEventListener('click', () => { $('coach').classList.remove('on'); try { localStorage.setItem('nf-coach', '1'); } catch (e) {} });
+$('coachOk').addEventListener('click', () => { $('coach').classList.remove('on'); try { localStorage.setItem('nf-coach', '1'); } catch (e) {} setTimeout(askSync, 500); });
+paintSync(); if (acct) syncNow();
 function act(a, auto = true) {
   if (!curFilm) return; const f = curFilm, prev = store.map[f.id] ? { ...store.map[f.id] } : null, idx = curIdx();
   if (prev && prev.state === a) { setSwipe(f.id, null); toast('Cleared', () => setSwipe(f.id, prev)); return; }
@@ -1231,7 +1315,8 @@ function paintDrawer() {
   $('dBody').innerHTML = sec(ic('heart') + ' Watchlist', items.filter(x => x[1].state === 'want'))
     + sec(ic('eye') + ' Seen', items.filter(x => x[1].state === 'seen'), v => VIBE[v.vibe] ? ' · ' + VIBE[v.vibe] : '')
     + sec(ic('x') + ' Not for us', items.filter(x => x[1].state === 'nope'))
-    + `<p class="dempty" style="margin-top:18px">Saved on this phone. Shared lists with Prashanth come with Versus mode.</p>`;
+    ;
+  paintSync();
 }
 [$('wlBtn'), $('wlBtn2')].forEach(b => b.addEventListener('click', () => { paintDrawer(); $('drawer').classList.add('on'); }));
 $('dClose').addEventListener('click', () => $('drawer').classList.remove('on'));
@@ -1431,6 +1516,7 @@ function endIntro() {
   $('skip').classList.remove('on'); ['boot', 'iline', 'isub', 'ibars'].forEach(id => $(id).classList.remove('on')); $('iflash').style.opacity = 0;
   $('gate').classList.add('gone');
   readScroll();
+  if (coachShown) setTimeout(askSync, 1500);
 }
 $('go').addEventListener('click', () => startIntro(true));
 $('quiet').addEventListener('click', () => startIntro(false));

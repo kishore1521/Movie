@@ -12,9 +12,13 @@ const clean = s => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20
 
 async function tmdb(env, path, params = {}) {
   const u = new URL("https://api.themoviedb.org/3" + path);
-  u.searchParams.set("api_key", env.TMDB_KEY);
+  const key = (env.TMDB_KEY || "").trim();
+  const headers = { Accept: "application/json" };
+  if (key.startsWith("eyJ")) headers.Authorization = "Bearer " + key; // v4 read-access token
+  else u.searchParams.set("api_key", key); // v3 API key
   for (const k in params) u.searchParams.set(k, params[k]);
-  const r = await fetch(u, { cf: { cacheTtl: 3600, cacheEverything: true } });
+  const r = await fetch(u, { headers, cf: { cacheTtl: 3600, cacheEverything: true } });
+  tmdb.last = r.status;
   return r.ok ? r.json() : null;
 }
 const slim = (x, kind) => ({
@@ -40,7 +44,8 @@ export default {
         const q = (url.searchParams.get("q") || "").trim().slice(0, 80);
         if (q.length < 2) return J({ results: [] });
         const d = await tmdb(env, "/search/multi", { query: q, include_adult: "false" });
-        const results = ((d && d.results) || []).filter(x => (x.media_type === "movie" || x.media_type === "tv") && x.poster_path).slice(0, 18).map(x => slim(x));
+        if (!d) return J({ results: [], error: "TMDB said " + tmdb.last + ". Check the TMDB_KEY secret." }, 502);
+        const results = (d.results || []).filter(x => (x.media_type === "movie" || x.media_type === "tv") && x.poster_path).slice(0, 18).map(x => slim(x));
         return J({ results });
       }
       const ids = (url.searchParams.get("ids") || "").split(",").slice(0, 6).map(s => s.split(":")).filter(a => (a[0] === "movie" || a[0] === "tv") && /^\d+$/.test(a[1]));

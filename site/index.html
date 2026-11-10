@@ -839,7 +839,18 @@ function overlay(s, W, H, seed) {
 /* =============== STATE =============== */
 let cat = 'all', pace = 'any', typ = 'all', reel = [];
 const hiddenAtLoad = new Set();
-const buildReel = () => { reel = FILMS.filter(f => (typ === 'all' || (typ === 'fresh' ? f.fresh : f.type === typ)) && (cat === 'all' || f.cat === cat) && (pace === 'any' || f.pace === pace) && !hiddenAtLoad.has(f.id)).sort((a, b) => b.m - a.m); };
+const buildReel = () => { reel = FILMS.filter(f => (typ === 'all' || (typ === 'fresh' ? f.fresh : f.type === typ)) && (cat === 'all' || f.cat === cat) && (pace === 'any' || f.pace === pace) && !hiddenAtLoad.has(f.id)); const tw = tasteWeights(), sc = new Map(reel.map(f => [f.id, f.m + tasteBoost(f, tw) + dayJitter(f.id)])); reel.sort((a, b) => sc.get(b.id) - sc.get(a.id)); };
+// Taste: learn from what you marked. Loved/saved = up, okay = a little, disliked/not for us = down. Applies per genre, category, language and pace.
+function tasteWeights() {
+  const w = {}, n = { c: 0 }; const add = (k, x) => { w[k] = (w[k] || 0) + x; };
+  let src = {}, fm = {}; try { src = store.map; fm = FILMMAP; } catch (e) {}
+  for (const [id, v] of Object.entries(src)) { const f = fm[id]; if (!v || !f) continue;
+    const x = v.state === 'want' ? 1 : v.state === 'nope' ? -1.5 : v.vibe === 'up' ? 2 : v.vibe === 'down' ? -2 : v.vibe === 'mid' ? .3 : 0.5; n.c++;
+    [f.cat, f.lang, f.pace, ...String(f.genre || '').split(' \u00b7 ')].filter(Boolean).forEach(k => add(k, x)); }
+  w.__n = n.c; return w;
+}
+function tasteBoost(f, w) { if ((w.__n || 0) < 3) return 0; let t = 0; [f.cat, f.lang, f.pace, ...String(f.genre || '').split(' \u00b7 ')].filter(Boolean).forEach(k => { t += (w[k] || 0); }); return Math.max(-14, Math.min(14, t * 1.2)); }
+function dayJitter(id) { const d = new Date(), seed = d.getFullYear() * 400 + d.getMonth() * 31 + d.getDate(); let h = seed; for (const c of id) h = (h * 31 + c.charCodeAt(0)) % 9973; return (h / 9973) * 5 - 2.5; }
 buildReel();
 
 /* =============== RENDERER =============== */
@@ -1192,7 +1203,7 @@ const store = { map: {} };
 const FILMMAP = Object.fromEntries(FILMS.map(f => [f.id, f]));
 try { store.map = JSON.parse(localStorage.getItem('nf-swipes') || '{}'); } catch (e) {}
 const saveLocal = () => { try { localStorage.setItem('nf-swipes', JSON.stringify(store.map)); } catch (e) {} };
-function applyHiddenAtLoad() { hiddenAtLoad.clear(); for (const [id, v] of Object.entries(store.map)) if (v && (v.state === 'seen' || v.state === 'nope')) hiddenAtLoad.add(id); }
+function applyHiddenAtLoad() { hiddenAtLoad.clear(); for (const [id, v] of Object.entries(store.map)) if (v) hiddenAtLoad.add(id); }
 applyHiddenAtLoad(); buildReel(); sizeScroll();
 function onStoreChange() {
   const n = Object.values(store.map).filter(v => v && v.state === 'want').length;

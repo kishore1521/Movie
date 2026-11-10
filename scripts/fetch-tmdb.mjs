@@ -112,5 +112,20 @@ for (const [kind, page] of [['movie', 1], ['movie', 2], ['tv', 1], ['movie', 3]]
   }
 }
 
+// 4. "Buzzing" list: titles picked weekly by Claude's scout (site/data/buzz-titles.json), resolved to TMDB posters here.
+try {
+  const bt = JSON.parse(await readFile('site/data/buzz-titles.json', 'utf8')), out = [];
+  for (const b of bt.items || []) {
+    const kind = b.kind === 'tv' ? 'tv' : 'movie', yk = kind === 'tv' ? 'first_air_date_year' : 'year';
+    let list = (await api(`/search/${kind}`, { query: b.title, ...(b.year ? { [yk]: b.year } : {}), include_adult: 'false' }))?.results || [];
+    if (!list.length) list = (await api(`/search/${kind}`, { query: b.title, include_adult: 'false' }))?.results || [];
+    const r = list.find(x => x.poster_path); if (!r) { console.warn('Buzz not found:', b.title); continue; }
+    out.push({ id: r.id, kind, title: r.title || r.name, year: (r.release_date || r.first_air_date || '').slice(0, 4), poster: r.poster_path,
+      vote: r.vote_count > 20 ? Math.round(r.vote_average * 10) / 10 : null, genres: r.genre_ids || [], lang: r.original_language, overview: (r.overview || '').slice(0, 240) });
+  }
+  await writeFile('site/data/buzz.json', JSON.stringify({ updated: bt.updated || '', items: out }));
+  console.log(`Buzz: ${out.length} titles.`);
+} catch (e) { console.warn('No buzz list yet.'); }
+
 await writeFile(OUT, JSON.stringify({ updated: new Date().toISOString(), items, fresh, fillers: fillers.slice(0, 30) }));
 console.log(`Wrote ${Object.keys(items).length - fresh.length}/${catalog.length} catalog titles, ${fresh.length} fresh picks, ${Math.min(fillers.length, 30)} wall fillers.`);

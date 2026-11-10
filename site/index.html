@@ -194,6 +194,39 @@
   .coach input { display:block; width:100%; margin-top:10px; background:rgba(255,255,255,.06); border:1px solid var(--faint); color:var(--fg); font:400 15px 'Space Grotesk', sans-serif; padding:11px 13px; border-radius:12px; outline:none; }
   .coach input:focus { border-color:rgba(94,240,255,.6); }
   .coach .ghost { background:none; color:var(--dim); margin-top:6px; }
+  .dtabs, .dtabs2 { display:flex; gap:6px; margin:12px 0 4px; overflow-x:auto; scrollbar-width:none; } .dtabs::-webkit-scrollbar, .dtabs2::-webkit-scrollbar { display:none; }
+  .dtabs button, .dtabs2 button { flex:none; background:none; border:1px solid var(--faint); color:var(--dim); font:500 13px 'Space Grotesk', sans-serif; padding:8px 15px; border-radius:99px; cursor:pointer; }
+  .dtabs button.on, .dtabs2 button.on { background:var(--fg); color:#05070b; border-color:var(--fg); }
+  .dact { display:flex; gap:6px; margin-top:7px; } .dact button { display:inline-flex; align-items:center; gap:5px; } .dact button.on { background:var(--cy); color:#05070b; border-color:var(--cy); } .dact .ic { width:14px; height:14px; }
+  .ditem > button { padding:8px; line-height:0; } .ditem > button .ic { width:14px; height:14px; }
+  .hsum { display:flex; gap:10px; margin:16px 0 4px; } .hsum span { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--faint); border-radius:99px; padding:7px 13px; font-size:13px; } .hsum .ic { width:15px; height:15px; color:var(--cy); }
+  .hmo { font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.24em; color:var(--cy); font-weight:400; margin:20px 0 10px; text-transform:uppercase; }
+  .hgrid { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
+  .hcard { position:relative; background:none; border:0; color:var(--fg); padding:0; cursor:pointer; text-align:left; font:inherit; }
+  .hcard img { width:100%; aspect-ratio:2/3; object-fit:cover; border-radius:8px; display:block; background:#111; }
+  .hcard small { display:block; font-size:11px; color:var(--dim); margin-top:5px; line-height:1.25; }
+  .hcard .hv { position:absolute; right:6px; top:6px; background:rgba(0,0,0,.78); border-radius:99px; padding:4px; line-height:0; color:var(--dim); } .hcard .hv.up { color:#7dffb2; } .hcard .hv.down { color:#ff8a8a; } .hcard .hv .ic { width:14px; height:14px; }
+  .disc { position:fixed; left:0; right:0; bottom:0; top:70px; z-index:9; background:rgba(4,6,10,.96); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); overflow-y:auto; padding:16px 24px 50px; transform:translateY(100%); transition:transform .5s cubic-bezier(.2,.8,.1,1); pointer-events:auto; }
+  .disc.on { transform:none; }
+  .dsearch { display:flex; align-items:center; gap:10px; border:1px solid var(--faint); background:rgba(255,255,255,.05); border-radius:99px; padding:0 18px; margin:14px 0 18px; } .dsearch .ic { width:18px; height:18px; color:var(--dim); flex:none; }
+  .dsearch input { flex:1; min-width:0; background:none; border:0; outline:none; color:var(--fg); font:400 16px 'Space Grotesk', sans-serif; padding:14px 0; }
+  .dnote { color:var(--dim); font-size:13.5px; padding:14px 2px; }
+  .dthumbs { display:flex; gap:8px; align-items:center; margin:14px 0 18px; color:var(--dim); font-size:12.5px; overflow-x:auto; } .dthumbs img { width:34px; height:51px; border-radius:5px; object-fit:cover; flex:none; }
+  .vrow { margin-top:22px; } .vrow h4 { font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.2em; color:var(--cy); font-weight:400; margin-bottom:10px; text-transform:uppercase; }
+  .vstrip { display:flex; gap:12px; overflow-x:auto; padding-bottom:6px; } .vstrip .gcard { flex:none; width:104px; } .vstrip .gcard small { display:none; } .vstrip .gcard b { font-size:11.5px; }
+  .tonrow { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 4px; } .tonrow button, .vname button, .tbig button { background:none; border:1px solid var(--faint); color:var(--fg); font:500 13px 'Space Grotesk', sans-serif; padding:9px 15px; border-radius:99px; cursor:pointer; } .tonrow button.on { background:var(--cy); color:#05070b; border-color:var(--cy); }
+  .tlab { font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.2em; color:var(--dim); text-transform:uppercase; margin-top:18px; }
+  .tgo { background:var(--fg) !important; color:#05070b !important; border:1px solid var(--fg) !important; margin-top:18px; font:500 13px 'Space Grotesk', sans-serif; padding:9px 18px; border-radius:99px; cursor:pointer; }
+  .tbig { display:flex; gap:18px; margin-top:22px; align-items:flex-end; } .tbig img { width:min(190px, 42vw); border-radius:10px; aspect-ratio:2/3; object-fit:cover; background:#111; box-shadow:0 20px 60px rgba(0,0,0,.6); }
+  .tbig b { display:block; font-family:'Unbounded', sans-serif; font-size:20px; line-height:1.2; } .tbig small { display:block; color:var(--dim); margin-top:6px; font-size:13px; } .tbig .tb { display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
+  .vname { display:flex; gap:8px; margin:14px 0 6px; } .vname input { flex:1; min-width:0; background:rgba(255,255,255,.05); border:1px solid var(--faint); color:var(--fg); font:400 15px 'Space Grotesk', sans-serif; padding:11px 14px; border-radius:99px; outline:none; }
+  .dsheet { position:fixed; inset:0; z-index:11; background:rgba(0,0,0,.55); display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .25s; } .dsheet.on { opacity:1; pointer-events:auto; }
+  .shc { position:relative; width:min(560px, 100%); background:#070b11; border:1px solid var(--faint); border-radius:20px 20px 0 0; padding:20px; display:flex; gap:16px; transform:translateY(20px); transition:transform .3s; } .dsheet.on .shc { transform:none; }
+  .shx { position:absolute; right:12px; top:12px; background:none; border:1px solid var(--faint); color:var(--fg); width:34px; height:34px; border-radius:50%; cursor:pointer; line-height:0; } .shx .ic { width:14px; height:14px; }
+  .shp img { width:120px; border-radius:8px; aspect-ratio:2/3; object-fit:cover; background:#111; display:block; }
+  .shi { flex:1; min-width:0; padding-right:30px; } .shi b { display:block; font-family:'Unbounded', sans-serif; font-size:17px; line-height:1.25; } .shi small { display:block; color:var(--dim); font-size:12.5px; margin-top:5px; } .shi p { color:var(--dim); font-size:12.5px; line-height:1.5; margin-top:8px; }
+  .shb, .shv { display:flex; gap:7px; flex-wrap:wrap; margin-top:12px; } .shb button, .shv button, .trl { display:inline-flex; align-items:center; gap:6px; background:none; border:1px solid var(--faint); color:var(--fg); font:500 12.5px 'Space Grotesk', sans-serif; padding:8px 13px; border-radius:99px; cursor:pointer; text-decoration:none; } .shb button.on, .shv button.on { background:var(--cy); color:#05070b; border-color:var(--cy); } .shi .ic { width:14px; height:14px; } .trl { margin-top:12px; color:var(--dim); }
+  @media (max-width:760px) { .disc { padding:12px 12px 50px; } .shp img { width:96px; } .tbig { flex-direction:row; } }
   #syErr { color:#ff8a8a; font-size:12.5px; min-height:0; margin-top:8px; }
   @media (max-width:760px) {
     .acts { gap:6px; margin-top:10px; } .acts button, .acts a { padding:8px 10px; font-size:12px; }
@@ -248,7 +281,7 @@
   @media (max-width:760px) { .grid { padding:14px 12px 40px; } .gbody { grid-template-columns:repeat(3, 1fr); gap:10px; } .gcard b { font-size:12px; } .gcard small { display:none; }
     .acts button, .acts a { padding:8px 11px; font-size:12px; } .pnav button { padding:7px 10px; } }
   .mobonly { display:contents; } .mobonly .wl { display:none; }
-  @media (max-width:760px) { .mobonly { display:flex; gap:6px; align-items:center; pointer-events:auto; } .mobonly .wl { display:flex; } .ctrls #gridBtn, .ctrls #wlBtn { display:none; } }
+  @media (max-width:760px) { .mobonly { display:flex; gap:6px; align-items:center; pointer-events:auto; } .mobonly .wl { display:flex; } .ctrls #gridBtn, .ctrls #wlBtn, .ctrls #discBtn { display:none; } }
   .endc button { pointer-events:auto; margin-top:18px; background:none; border:1px solid var(--faint); color:var(--fg); font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.2em; padding:10px 18px; border-radius:99px; cursor:pointer; }
 
   /* ---- icons, round 3 ---- */
@@ -331,11 +364,12 @@
   <div id="tags"></div>
 
   <div class="top">
-    <div class="brand"><span style="display:flex;align-items:center;gap:10px"><i></i>Next Frame</span><span class="mobonly"><button class="seg wl" id="gridBtn2"><span data-ic="grid"></span> All</button><button class="seg wl" id="wlBtn2"><span data-ic="heart"></span> <b id="wlCount2">0</b></button><button class="seg snd mobsnd" id="snd2" style="pointer-events:auto"><span class="bars"><b></b><b></b><b></b></span></button></span></div>
+    <div class="brand"><span style="display:flex;align-items:center;gap:10px"><i></i>Next Frame</span><span class="mobonly"><button class="seg wl" id="discBtn2"><span data-ic="search"></span></button><button class="seg wl" id="gridBtn2"><span data-ic="grid"></span> All</button><button class="seg wl" id="wlBtn2"><span data-ic="heart"></span> <b id="wlCount2">0</b></button><button class="seg snd mobsnd" id="snd2" style="pointer-events:auto"><span class="bars"><b></b><b></b><b></b></span></button></span></div>
     <div class="ctrls">
       <div class="seg" id="typ"><button data-v="all" class="on">All</button><button data-v="movie">Movies</button><button data-v="tv">Shows</button><button data-v="fresh">New this week</button></div>
       <div class="seg" id="cat"><label>Genre</label><button data-v="all" class="on">All</button><button data-v="horror">Horror</button><button data-v="thriller">Thriller</button><button data-v="action">Action</button><button data-v="comedy">Comedy</button><button data-v="drama">Drama</button></div>
       <div class="seg" id="pace"><label>Pace</label><button data-v="any" class="on">Any</button><button data-v="fast">Fast</button><button data-v="medium">Medium</button><button data-v="slow">Slow</button></div>
+      <button class="seg wl" id="discBtn"><span data-ic="search"></span> <span class="hide-m">Discover</span></button>
       <button class="seg wl" id="gridBtn"><span data-ic="grid"></span> <span class="hide-m">All picks</span></button>
       <button class="seg wl" id="wlBtn"><span data-ic="heart"></span> <b id="wlCount">0</b></button>
       <button class="seg snd" id="snd"><span class="bars"><b></b><b></b><b></b></span><span id="sndt">Sound</span></button>
@@ -393,7 +427,9 @@
   <div class="tmodal" id="tmodal"><div class="tbox"><iframe id="tframe" title="Trailer" allow="autoplay; encrypted-media; picture-in-picture; fullscreen"></iframe></div><button id="tclose"><span data-ic="x"></span> Close</button></div>
   <div class="lbox" id="lbox"><button class="lbn" id="lbPrev" title="Previous"><span data-ic="chevL"></span></button><img id="lbImg" alt=""><button class="lbn" id="lbNext" title="Next"><span data-ic="chevR"></span></button><div class="lbbar"><span id="lbN"></span><button id="lbClose"><span data-ic="x"></span> Close</button></div></div>
   <div class="coach" id="syncM"><b>Keep your lists</b><p>Pick a name and a passcode (4+ characters). Use the same pair on any phone or browser and your lists come back. First time? This creates yours.</p><input id="syU" placeholder="Your name (e.g. kris)" autocapitalize="none" autocomplete="username" spellcheck="false"><input id="syP" type="password" placeholder="Passcode" autocomplete="current-password"><div id="syErr"></div><button id="syGo">Continue</button><button class="ghost" id="sySkip">Not now</button></div>
-  <div class="drawer" id="drawer"><div class="dhead"><h3>Your lists</h3><button id="dClose" title="Close"><span data-ic="x"></span></button></div><div class="sync" id="syncBox"></div><div id="dBody"></div></div>
+  <div class="disc" id="disc"><div class="ghead"><h3>Discover</h3><button id="dcClose" title="Close"><span data-ic="x"></span></button></div><div class="dtabs2" id="dcTabs"><button data-t="search" class="on">Search</button><button data-t="foryou">For you</button><button data-t="buzz">Buzzing</button><button data-t="tonight">Tonight</button><button data-t="versus">Versus</button></div><div id="dcBody"></div></div>
+  <div class="dsheet" id="dsheet"></div>
+  <div class="drawer" id="drawer"><div class="dhead"><h3>Your lists</h3><button id="dClose" title="Close"><span data-ic="x"></span></button></div><div class="sync" id="syncBox"></div><div class="dtabs" id="dTabs"><button data-t="lists" class="on">Lists</button><button data-t="hist">History</button></div><div id="dBody"></div></div>
 </div>
 
 <script type="module">
@@ -590,7 +626,7 @@ await loadTMDB();
 const SYNC_URL = 'https://rough-shadow-a961.kkanchan1106.workers.dev/';
 const jget = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
 const jset = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
-let acct = jget('nf-acct', null), delm = jget('nf-del', {}), syncState = acct ? 'idle' : 'off';
+let acct = jget('nf-acct', null), delm = jget('nf-del', {}), custom = jget('nf-custom', {}), fcustom = {}, syncState = acct ? 'idle' : 'off';
 function mergeData(a, ad, b, bd) {
   const map = {}, del = {}, ids = new Set([...Object.keys(a), ...Object.keys(b), ...Object.keys(ad), ...Object.keys(bd)]);
   ids.forEach(id => {
@@ -611,7 +647,7 @@ async function syncPull(a) {
   const r = await remote('GET', null, a);
   if (r.status !== 200) return r;
   const d = r.data || {}, m = mergeData(jget('nf-swipes', {}), delm, d.map || {}, d.del || {});
-  jset('nf-swipes', m.map); delm = m.del; jset('nf-del', delm); r.merged = m; return r;
+  jset('nf-swipes', m.map); delm = m.del; jset('nf-del', delm); custom = Object.assign({}, d.custom || {}, custom); jset('nf-custom', custom); r.merged = m; return r;
 }
 await Promise.race([syncPull(), new Promise(r => setTimeout(r, 4500))]);
 // Fresh picks: TMDB's recommendations for the titles you loved + this week's trending titles in your genres.
@@ -844,7 +880,7 @@ const buildReel = () => { reel = FILMS.filter(f => (typ === 'all' || (typ === 'f
 function tasteWeights() {
   const w = {}, n = { c: 0 }; const add = (k, x) => { w[k] = (w[k] || 0) + x; };
   let src = {}, fm = {}; try { src = store.map; fm = FILMMAP; } catch (e) {}
-  for (const [id, v] of Object.entries(src)) { const f = fm[id]; if (!v || !f) continue;
+  for (const [id, v] of Object.entries(src)) { let f = fm[id]; if (!f && custom[id]) { const c = custom[id]; f = { cat: '', lang: LANGN[c.lang] || '', pace: '', genre: (c.genres || []).map(x => GEN[x]).filter(Boolean).join(' \u00b7 ') }; } if (!v || !f) continue;
     const x = v.state === 'want' ? 1 : v.state === 'nope' ? -1.5 : v.vibe === 'up' ? 2 : v.vibe === 'down' ? -2 : v.vibe === 'mid' ? .3 : 0.5; n.c++;
     [f.cat, f.lang, f.pace, ...String(f.genre || '').split(' \u00b7 ')].filter(Boolean).forEach(k => add(k, x)); }
   w.__n = n.c; return w;
@@ -1114,6 +1150,7 @@ const ICP = {
   replay: '<path d="M4 12a8 8 0 1 0 2.6-5.9L4 8.5M4 4v4.5h4.5"/>',
   home: '<path d="M3.5 11L12 4.5l8.5 6.5M6 9.5V19.5h12V9.5"/>',
   check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  search: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
   spark: '<path d="M12 3.5l1.9 6.6 6.6 1.9-6.6 1.9-1.9 6.6-1.9-6.6-6.6-1.9 6.6-1.9z"/>',
 };
 const ic = n => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICP[n] || ''}</svg>`;
@@ -1129,6 +1166,20 @@ function score(label, v, max, fmt) {
   const p = v / max * 100; return `<div class="sc"><em>${fmt(v)}</em><span>${label}</span><i><u class="${p < 50 ? 'low' : p >= 78 ? 'hi' : ''}" data-w="${p}"></u></i></div>`;
 }
 let curFilm = null;
+const wTitle = id => (SEEDMAP[id] || FILMMAP[id] || { title: id }).title;
+// "Because you loved…": the loved titles on the wall that are most like this pick, counting what you two actually marked.
+function liveWhy(f) {
+  if (f._why0 === undefined) f._why0 = f.why;
+  const g = new Set(tm(f.id).genres || []), lv = new Map(), base = new Set(f._why0.map(w => w[0]));
+  SEEDS.forEach(s => lv.set(s.id, 1));
+  for (const [id, v] of Object.entries(store.map)) if (v && FILMMAP[id] && slotIdx[id] != null && (v.state === 'want' || (v.state === 'seen' && v.vibe === 'up'))) lv.set(id, (lv.get(id) || 0) + 2);
+  const sc = [];
+  lv.forEach((w, id) => { if (id === f.id || slotIdx[id] == null) return; const gg = tm(id).genres || [], ov = gg.filter(x => g.has(x)).length; if (!ov && !base.has(id)) return; sc.push([id, w + ov * 1.5 + (tm(id).lang && tm(id).lang === tm(f.id).lang ? 1 : 0) + (base.has(id) ? 3 : 0)]); });
+  sc.sort((a, b) => b[1] - a[1]);
+  const nm = id => (tm(id).genres || []).filter(x => g.has(x)).map(x => GEN[x]).filter(Boolean).slice(0, 2).join(' \u00b7 ');
+  const top = sc.slice(0, 3).map(([id]) => [id, nm(id) ? 'Both ' + nm(id) : 'Fans of that one tend to like this']);
+  return top.length ? top : f._why0;
+}
 const fmtMins = m => `${Math.floor(m / 60)}h ${m % 60}m`;
 const metaLine = f => [f.lang, f.year, f.type === 'tv' ? f.span : f.mins ? fmtMins(f.mins) : ''].filter(Boolean).join(' · ');
 const trailerURL = f => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(`${f.title} ${f.year} official trailer`);
@@ -1139,7 +1190,8 @@ function fillPanel(i) {
   $('pMeta').innerHTML = (f.fresh ? '<b class="newb">NEW THIS WEEK</b> ' : '') + metaLine(f);
   $('pTitle').textContent = f.title; $('pGenre').textContent = f.genre;
   $('pMatch').innerHTML = `${f.m}<sup>%</sup>`; $('pFor').textContent = 'match for you two'; $('pTake').textContent = f.take;
-  $('pWhy').innerHTML = f.why.length ? f.why.map(([sid, r], k) => `<li><i>${k + 1}</i><div><b>Because you loved ${SEEDMAP[sid].title}.</b> <span>${r}.</span></div></li>`).join('')
+  f.why = liveWhy(f);
+  $('pWhy').innerHTML = f.why.length ? f.why.map(([sid, r], k) => `<li><i>${k + 1}</i><div><b>Because you loved ${wTitle(sid)}.</b> <span>${r}.</span></div></li>`).join('')
     : `<li><i>${ic('spark')}</i><div><b>Trending this week.</b> <span>Popular right now in a genre you both like.</span></div></li>`;
   $('pScores').innerHTML = f.fresh ? score('TMDB', tm(f.id).vote, 10, v => v.toFixed(1)) + score('Est. match', f.m, 100, v => v + '%') + score('IMDb', null) + score('RT', null) : score('IMDb', f.imdb, 10, v => v.toFixed(1)) + score('RT critics', f.rtc, 100, v => v + '%') + score('RT crowd', f.rta, 100, v => v + '%') + (f.lb != null || !tm(f.id).vote ? score('Letterbxd', f.lb, 5, v => v.toFixed(1)) : score('TMDB', tm(f.id).vote, 10, v => v.toFixed(1)));
   setTimeout(() => $('pScores').querySelectorAll('u[data-w]').forEach(u => u.style.width = u.dataset.w + '%'), 60);
@@ -1147,7 +1199,7 @@ function fillPanel(i) {
   $('pPace').textContent = f.pace.toUpperCase() + (f.paceEst ? ' · EST.' : ''); $('pWave').setAttribute('d', wave(f.pace));
   $('pReddit').textContent = f.buzz;
   startStills(f); fillMedia(f);
-  seedsEl.innerHTML = f.why.map(([sid], k) => `<div class="seed"><img src="${seedImg[sid] || ''}" alt=""><span>${k + 1} · ${SEEDMAP[sid].title}</span></div>`).join('');
+  seedsEl.innerHTML = f.why.map(([sid], k) => `<div class="seed"><img src="${seedImg[sid] || filmImg[sid] || ''}" alt=""><span>${k + 1} · ${wTitle(sid)}</span></div>`).join('');
   const bd = tm(f.id).backdrops || [];
   stillsEl.style.backgroundImage = bd.length ? `url(${IMG}w780${bd[0]})` : (filmImg[f.id] ? `url(${filmImg[f.id]})` : 'none');
   $('panel').scrollTop = 0;
@@ -1215,13 +1267,14 @@ let undoFn = null;
 function toast(msg, undo) { const t = $('toast'); $('toastT').textContent = msg; undoFn = undo || null; t.classList.toggle('undo', !!undo); t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => { t.classList.remove('on', 'undo'); undoFn = null; }, undo ? 5000 : 1900); }
 $('toastU').addEventListener('click', () => { const f = undoFn; $('toast').classList.remove('on', 'undo'); undoFn = null; if (f) f(); });
 async function setSwipe(id, val) {
+  if (val && val.state === 'seen') { const o = store.map[id]; val = Object.assign({}, val, { since: val.since || (o && o.state === 'seen' ? (o.since || o.at) : Date.now()) }); }
   if (val) { if (delm[id] && (val.at || 0) <= delm[id]) val = Object.assign({}, val, { at: Date.now() }); store.map[id] = val; delete delm[id]; }
   else { delete store.map[id]; delm[id] = Date.now(); }
   saveLocal(); jset('nf-del', delm); onStoreChange(); queuePush();
 }
 let pushT = 0; const queuePush = () => { if (acct) { clearTimeout(pushT); pushT = setTimeout(syncPush, 900); } };
 async function syncPush() {
-  if (!acct) return; const r = await remote('PUT', JSON.stringify({ map: store.map, del: delm, t: Date.now() }));
+  if (!acct) return; const r = await remote('PUT', JSON.stringify({ map: store.map, del: delm, custom, t: Date.now() }));
   syncState = r.status === 200 ? 'ok' : r.status === 403 ? 'bad' : 'offline'; paintSync();
 }
 async function syncNow() {
@@ -1317,22 +1370,202 @@ $('seenq').addEventListener('click', e => { const b = e.target.closest('button')
 const STAMPS = { want: ['WATCHLIST', '#7dffb2'], nope: ['NOT FOR US', '#ff5a6e'], seen: ['SEEN IT', '#5ef0ff'] };
 function stampShow(a, op) { const st = $('stamp'); const [t, c] = STAMPS[a]; st.textContent = t; st.style.color = c; st.style.opacity = op; st.style.transform = `translate(-50%,-50%) rotate(${a === 'nope' ? 12 : -12}deg) scale(${.9 + op * .15})`; }
 function stampFlash(a) { stampShow(a, 1); setTimeout(() => { $('stamp').style.transition = 'opacity .5s'; $('stamp').style.opacity = 0; setTimeout(() => $('stamp').style.transition = '', 520); }, 380); }
-addEventListener('keydown', e => { if (e.key === 'Escape') { closeLB(); closeGrid(); $('drawer').classList.remove('on'); closeTrailer(); return; } if (introOn || $('grid').classList.contains('on')) return; if (e.key === 'ArrowRight') { e.preventDefault(); goToPick(curIdx() + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); goToPick(curIdx() - 1); } });
+addEventListener('keydown', e => { if (e.key === 'Escape') { closeLB(); closeGrid(); if ($('dsheet').classList.contains('on')) { $('dsheet').classList.remove('on'); return; } closeDisc(); $('drawer').classList.remove('on'); closeTrailer(); return; } if (introOn || $('grid').classList.contains('on')) return; if (e.key === 'ArrowRight') { e.preventDefault(); goToPick(curIdx() + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); goToPick(curIdx() - 1); } });
 // drawer
+let dTab = 'lists';
+const VI = { up: ['thumbUp', 'Loved it'], mid: ['meh', 'Okay'], down: ['thumbDown', 'Didn’t like'] };
+function metaOf(id) {
+  const f = FILMMAP[id]; if (f) return { id, title: f.title, sub: metaLine(f), img: filmImg[id] || '', f };
+  const c = custom[id] || fcustom[id]; if (!c) return null;
+  return { id, title: c.title, sub: [LANGN[c.lang] || String(c.lang || '').toUpperCase(), c.year, c.kind === 'tv' ? 'Series' : ''].filter(Boolean).join(' · '), img: c.poster ? IMG + 'w185' + c.poster : '', c };
+}
+function dRow(id, v) {
+  const m = metaOf(id); if (!m) return '';
+  const acts = v.state === 'seen' ? `<div class="dact">${['up', 'mid', 'down'].map(k => `<button class="${v.vibe === k ? 'on' : ''}" data-set="${id}|seen|${k}" title="${VI[k][1]}">${ic(VI[k][0])}</button>`).join('')}</div>`
+    : v.state === 'want' ? `<div class="dact"><button data-set="${id}|seen|">${ic('eye')} Seen it</button></div>` : `<div class="dact"><button data-set="${id}|want|">${ic('heart')} Watch later</button></div>`;
+  return `<div class="ditem"><img src="${m.img}" alt=""><div><b>${m.title}</b><small>${m.sub}</small>${acts}</div><button data-trailer="${id}" title="Trailer">${ic('play')}</button><button data-undo="${id}" title="Remove">${ic('x')}</button></div>`;
+}
 function paintDrawer() {
-  const items = Object.entries(store.map).filter(([id, v]) => v && FILMMAP[id]).sort((a, b) => (b[1].at || 0) - (a[1].at || 0));
-  const row = (id, v, extra) => { const f = FILMMAP[id]; return `<div class="ditem"><img src="${filmImg[id] || ''}" alt=""><div><b>${f.title}</b><small>${metaLine(f)}${extra || ''}</small></div><button data-trailer="${id}">${ic('play')} Trailer</button><button data-undo="${id}">Undo</button></div>`; };
-  const sec = (title, list, extra) => `<div class="dsec"><h4>${title} · ${list.length}</h4>${list.length ? list.map(([id, v]) => row(id, v, extra && extra(v))).join('') : '<div class="dempty">Nothing here yet.</div>'}</div>`;
-  $('dBody').innerHTML = sec(ic('heart') + ' Watchlist', items.filter(x => x[1].state === 'want'))
-    + sec(ic('eye') + ' Seen', items.filter(x => x[1].state === 'seen'), v => VIBE[v.vibe] ? ' · ' + VIBE[v.vibe] : '')
-    + sec(ic('x') + ' Not for us', items.filter(x => x[1].state === 'nope'))
-    ;
+  document.querySelectorAll('#dTabs button').forEach(b => b.classList.toggle('on', b.dataset.t === dTab));
+  const items = Object.entries(store.map).filter(([id, v]) => v && metaOf(id)).sort((a, b) => (b[1].at || 0) - (a[1].at || 0));
+  if (dTab === 'hist') paintHistory(items);
+  else {
+    const sec = (title, list) => `<div class="dsec"><h4>${title} · ${list.length}</h4>${list.length ? list.map(([id, v]) => dRow(id, v)).join('') : '<div class="dempty">Nothing here yet.</div>'}</div>`;
+    $('dBody').innerHTML = sec(ic('heart') + ' Watchlist', items.filter(x => x[1].state === 'want')) + sec(ic('eye') + ' Seen', items.filter(x => x[1].state === 'seen')) + sec(ic('x') + ' Not for us', items.filter(x => x[1].state === 'nope'));
+  }
   paintSync();
 }
-[$('wlBtn'), $('wlBtn2')].forEach(b => b.addEventListener('click', () => { paintDrawer(); $('drawer').classList.add('on'); }));
+function paintHistory(items) {
+  const seen = items.filter(x => x[1].state === 'seen').sort((a, b) => (b[1].since || b[1].at || 0) - (a[1].since || a[1].at || 0));
+  if (!seen.length) { $('dBody').innerHTML = '<div class="dempty" style="margin-top:18px">Nothing seen yet. Mark a pick as seen and it lands here.</div>'; return; }
+  const cnt = k => seen.filter(x => x[1].vibe === k).length;
+  let html = `<div class="hsum">${['up', 'mid', 'down'].map(k => `<span title="${VI[k][1]}">${ic(VI[k][0])} ${cnt(k)}</span>`).join('')}</div>`, last = '';
+  seen.forEach(([id, v]) => {
+    const m = metaOf(id), mo = new Date(v.since || v.at || 0).toLocaleString('en', { month: 'long', year: 'numeric' });
+    if (mo !== last) { html += `${last ? '</div>' : ''}<h4 class="hmo">${mo}</h4><div class="hgrid">`; last = mo; }
+    html += `<button class="hcard" data-cyc="${id}" title="Tap to change your rating"><img src="${m.img}" alt=""><span class="hv ${v.vibe || ''}">${v.vibe ? ic(VI[v.vibe][0]) : ic('eye')}</span><small>${m.title}</small></button>`;
+  });
+  $('dBody').innerHTML = html + '</div>';
+}
+[$('wlBtn'), $('wlBtn2')].forEach(b => b.addEventListener('click', () => { closeDisc(); paintDrawer(); $('drawer').classList.add('on'); }));
 $('dClose').addEventListener('click', () => $('drawer').classList.remove('on'));
-$('dBody').addEventListener('click', e => { const tb = e.target.closest('button[data-trailer]'); if (tb) { playTrailer(FILMMAP[tb.dataset.trailer]); return; } const b = e.target.closest('button[data-undo]'); if (b) { setSwipe(b.dataset.undo, null); toast('Removed. It\u2019s back in your picks next visit.'); } });
+$('dTabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { dTab = b.dataset.t; paintDrawer(); } });
+$('dBody').addEventListener('click', e => {
+  const tb = e.target.closest('button[data-trailer]');
+  if (tb) { const m = metaOf(tb.dataset.trailer); if (m) playTrailer(m.f || { id: m.id, title: m.title, year: m.c.year }); return; }
+  const sb = e.target.closest('button[data-set]');
+  if (sb) { const [id, st, vb] = sb.dataset.set.split('|'), old = store.map[id] || {}; setSwipe(id, { state: st, vibe: vb || null, at: Date.now(), since: old.since }); paintDrawer(); return; }
+  const cy = e.target.closest('button[data-cyc]');
+  if (cy) { const id = cy.dataset.cyc, old = store.map[id]; if (old) { setSwipe(id, Object.assign({}, old, { vibe: { up: 'mid', mid: 'down', down: 'up' }[old.vibe] || 'up', at: Date.now() })); paintDrawer(); } return; }
+  const b = e.target.closest('button[data-undo]'); if (b) { setSwipe(b.dataset.undo, null); toast('Removed'); }
+});
 onStoreChange();
+
+/* =============== DISCOVER: search any title, picks from your loves, tonight, versus =============== */
+const GENN = ids => (ids || []).map(x => GEN[x]).filter(Boolean).slice(0, 3).join(' · ');
+const nTitle = t => String(t || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const CATG = { horror: [27], thriller: [53], action: [28], comedy: [35], drama: [18] };
+const normT = t => ({ key: 'tm:' + t.kind + ':' + t.id, title: t.title, year: t.year, img: t.poster ? IMG + 'w342' + t.poster : '', vote: t.vote, genres: t.genres || [], lang: t.lang, kind: t.kind, overview: t.overview || '', raw: t, n: t.n });
+function tagFilm(n) { const f = FILMS.find(f => nTitle(f.title) === nTitle(n.title) && (!n.year || !f.year || String(f.year) === String(n.year))); if (f) { n.key = f.id; n.film = f; n.img = (filmImg[f.id] || n.img).replace('/w185/', '/w342/'); } return n; }
+function normKey(key) {
+  const m = metaOf(key); if (!m) return null;
+  if (m.f) { const f = m.f, d = tm(f.id); return { key: f.id, title: f.title, year: f.year, img: (filmImg[f.id] || '').replace('/w185/', '/w342/'), vote: d.vote, genres: d.genres && d.genres.length ? d.genres : (CATG[f.cat] || []), lang: d.lang, kind: f.type, overview: d.overview || f.take || '', film: f }; }
+  return normT(Object.assign({ id: m.c.id, kind: m.c.kind }, m.c));
+}
+async function api(pq) { const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 8000); try { const r = await fetch(SYNC_URL + pq, { signal: ctl.signal }); const j = await r.json().catch(() => ({})); return Object.assign({ status: r.status }, j); } catch (e) { return null; } finally { clearTimeout(to); } }
+let dcTab = 'search', dcItems = {}, lastQ = '', sT = 0, sSeq = 0, sheetN = null;
+const dCard = (n, badge) => { const v = store.map[n.key], st = v ? ic(v.state === 'want' ? 'heart' : v.state === 'seen' ? 'eye' : 'x') : ''; dcItems[n.key] = n;
+  return `<button class="gcard" data-k="${n.key}"><div class="gp"><img src="${n.img}" alt="" loading="lazy">${n.vote ? `<span class="gm">${n.vote.toFixed(1)}</span>` : ''}${badge ? `<span class="gn">${badge}</span>` : ''}<span class="gs" style="${st ? '' : 'display:none'}">${st}</span></div><b>${n.title}</b><small>${n.year || ''}${n.kind === 'tv' ? ' · Series' : ''}</small></button>`; };
+function refreshMarks() { document.querySelectorAll('#dcBody .gcard[data-k]').forEach(c => { const v = store.map[c.dataset.k], g = c.querySelector('.gs'); if (!g) return; g.style.display = v ? '' : 'none'; g.innerHTML = v ? ic(v.state === 'want' ? 'heart' : v.state === 'seen' ? 'eye' : 'x') : ''; }); }
+function openDisc(t) { if (t) dcTab = t; closeGrid(); $('drawer').classList.remove('on'); $('disc').classList.add('on'); paintDisc(); }
+function closeDisc() { $('disc').classList.remove('on'); $('dsheet').classList.remove('on'); }
+function paintDisc() {
+  document.querySelectorAll('#dcTabs button').forEach(b => b.classList.toggle('on', b.dataset.t === dcTab));
+  ({ search: paintSearch, foryou: paintForYou, buzz: paintBuzz, tonight: paintTonight, versus: paintVersus })[dcTab]();
+}
+// ---- sheet: save a title
+function openSheet(n) { sheetN = n; paintSheet(); $('dsheet').classList.add('on'); }
+function paintSheet() {
+  const n = sheetN; if (!n) return; const v = store.map[n.key] || {}, st = v.state;
+  const meta = [n.year, n.kind === 'tv' ? 'Series' : 'Movie', LANGN[n.lang] || ''].filter(Boolean).join(' · ') + (n.vote ? ' · ' + n.vote.toFixed(1) + ' TMDB' : '');
+  const ov = n.overview ? n.overview.slice(0, 150) + (n.overview.length > 150 ? '…' : '') : '';
+  $('dsheet').innerHTML = `<div class="shc"><button class="shx" id="shX" title="Close">${ic('x')}</button><div class="shp"><img src="${n.img}" alt=""></div><div class="shi"><b>${n.title}</b><small>${meta}</small><small>${GENN(n.genres)}</small>${ov ? `<p>${ov}</p>` : ''}
+    <div class="shb"><button data-a="want" class="${st === 'want' ? 'on' : ''}">${ic('heart')} Watch later</button><button data-a="seen" class="${st === 'seen' ? 'on' : ''}">${ic('eye')} Seen it</button><button data-a="nope" class="${st === 'nope' ? 'on' : ''}">${ic('x')} Not for me</button></div>
+    ${st === 'seen' ? `<div class="shv">${['up', 'mid', 'down'].map(k => `<button data-v="${k}" class="${v.vibe === k ? 'on' : ''}">${ic(VI[k][0])} ${VI[k][1]}</button>`).join('')}</div>` : ''}
+    <a class="trl" target="_blank" rel="noopener" href="${trailerURL({ title: n.title, year: n.year })}">${ic('play')} Trailer</a></div></div>`;
+}
+function sheetSet(a, vibe) {
+  const n = sheetN, old = store.map[n.key], cur = old && old.state;
+  if (!n.film && n.raw) { custom[n.key] = { id: n.raw.id, kind: n.raw.kind, title: n.raw.title, year: n.raw.year, poster: n.raw.poster, genres: n.raw.genres, lang: n.raw.lang, vote: n.raw.vote }; jset('nf-custom', custom); }
+  if (!vibe && cur === a) setSwipe(n.key, null); else setSwipe(n.key, { state: a, vibe: vibe || null, at: Date.now(), since: old && old.since });
+  uiSfx(a); paintSheet(); refreshMarks(); if (dcTab === 'tonight' || dcTab === 'versus') paintDisc();
+}
+$('dsheet').addEventListener('click', e => {
+  if (e.target.id === 'dsheet' || e.target.closest('#shX')) { $('dsheet').classList.remove('on'); return; }
+  const a = e.target.closest('button[data-a]'); if (a) { sheetSet(a.dataset.a); return; }
+  const v = e.target.closest('button[data-v]'); if (v) sheetSet('seen', v.dataset.v);
+});
+// ---- search
+function paintSearch() {
+  $('dcBody').innerHTML = `<div class="dsearch">${ic('search')}<input id="dcQ" placeholder="Search any movie or show" autocomplete="off" autocapitalize="none" spellcheck="false"></div><div class="gbody" id="dcRes"></div><div class="dnote" id="dcNote">Type a title, then tap its poster to save it.</div>`;
+  const q = $('dcQ'); q.value = lastQ; q.addEventListener('input', () => { clearTimeout(sT); sT = setTimeout(() => runSearch(q.value), 350); });
+  if (lastQ) runSearch(lastQ); else setTimeout(() => q.focus(), 350);
+}
+async function runSearch(q) {
+  q = q.trim(); lastQ = q; const note = $('dcNote'), res = $('dcRes'); if (!res) return;
+  if (q.length < 2) { res.innerHTML = ''; note.textContent = 'Type a title, then tap its poster to save it.'; return; }
+  const my = ++sSeq; note.textContent = 'Searching…';
+  const r = await api('search?q=' + encodeURIComponent(q)); if (my !== sSeq || !$('dcRes')) return;
+  if (!r || r.status !== 200) { res.innerHTML = ''; note.textContent = r && r.status === 501 ? 'Search turns on once the TMDB key is added to Cloudflare.' : 'Can’t reach search right now.'; return; }
+  const list = (r.results || []).map(normT).map(tagFilm); res.innerHTML = list.map(n => dCard(n)).join(''); note.textContent = list.length ? '' : 'No matches.';
+}
+// ---- for you: recommendations from the titles you two loved
+function lovedForRecs() {
+  const out = [], seen = new Set();
+  const lov = Object.entries(store.map).filter(([id, v]) => v && (v.state === 'want' || (v.state === 'seen' && v.vibe === 'up'))).sort((a, b) => (b[1].at || 0) - (a[1].at || 0));
+  const add = (id, kind, tid) => { if (kind && tid && !seen.has(kind + tid) && out.length < 6) { seen.add(kind + tid); out.push({ id, kind, tid }); } };
+  for (const [id] of lov) { if (out.length >= 4) break; const m = metaOf(id); if (!m) continue; if (m.f) { const d = tm(id); add(id, d.type, d.tmdb); } else add(id, m.c.kind, m.c.id); }
+  const off = Math.floor(Date.now() / 864e5) % SEEDS.length;
+  for (let k = 0; k < SEEDS.length && out.length < 6; k++) { const s = SEEDS[(off + k) % SEEDS.length], d = tm(s.id); add(s.id, d.type, d.tmdb); }
+  return out;
+}
+async function paintForYou() {
+  const src = lovedForRecs(), body = $('dcBody');
+  if (!src.length) { body.innerHTML = '<div class="dnote">Mark a few picks first and this fills in.</div>'; return; }
+  const thumbs = src.slice(0, 5).map(x => { const m = metaOf(x.id); return m && m.img ? `<img src="${m.img}" alt="">` : ''; }).join('');
+  body.innerHTML = `<div class="dthumbs">Because you loved ${thumbs}</div><div class="gbody" id="dcRes"></div><div class="dnote" id="dcNote">Finding picks…</div>`;
+  const sig = src.map(x => x.kind + ':' + x.tid).join(','); let r = null; try { const c = JSON.parse(sessionStorage.getItem('nf-recs') || 'null'); if (c && c.sig === sig && Date.now() - c.at < 18e5) r = { status: 200, results: c.list }; } catch (e) {}
+  if (!r) { r = await api('recs?ids=' + encodeURIComponent(sig)); if (r && r.status === 200) { try { sessionStorage.setItem('nf-recs', JSON.stringify({ sig, at: Date.now(), list: r.results })); } catch (e) {} } }
+  if (dcTab !== 'foryou' || !$('dcRes')) return;
+  if (!r || r.status !== 200) { $('dcNote').textContent = r && r.status === 501 ? 'This turns on once the TMDB key is added to Cloudflare.' : 'Can’t reach the picks service right now.'; return; }
+  const list = (r.results || []).map(normT).map(tagFilm).filter(n => !store.map[n.key]);
+  $('dcRes').innerHTML = list.map(n => dCard(n, n.n > 1 ? 'x' + n.n : '')).join(''); $('dcNote').textContent = list.length ? '' : 'You have already sorted everything in this batch.';
+}
+// ---- buzzing: a short list refreshed weekly
+async function paintBuzz() {
+  $('dcBody').innerHTML = '<div class="gbody" id="dcRes"></div><div class="dnote" id="dcNote">Loading…</div>';
+  let j = null; try { const r = await fetch('data/buzz.json', { cache: 'no-cache' }); if (r.ok) j = await r.json(); } catch (e) {}
+  if (dcTab !== 'buzz' || !$('dcRes')) return;
+  const list = ((j && j.items) || []).map(normT).map(tagFilm).filter(n => !store.map[n.key]);
+  $('dcRes').innerHTML = list.map(n => dCard(n)).join(''); $('dcNote').textContent = list.length ? (j.updated ? 'Updated ' + j.updated : '') : 'Nothing here yet. This fills in weekly.';
+}
+// ---- tonight
+const MOODS = { thrill: ['Thrilling', g => g.some(x => [53, 80, 9648, 28].includes(x))], scary: ['Scary', g => g.includes(27)], mind: ['Mind-bending', g => g.some(x => [878, 9648, 10765].includes(x))], easy: ['Easy watch', g => g.some(x => [35, 10751, 16].includes(x))], moved: ['Emotional', g => g.some(x => [18, 10749].includes(x))] };
+let tMood = null, tLen = 'any', tPick = null, tNone = false, tFrom = '', tSkip = new Set();
+function pickTonight() {
+  const mood = tMood && MOODS[tMood][1];
+  const ok = n => (!mood || mood(n.genres || [])) && (tLen === 'any' || (tLen === 'tv' ? n.kind === 'tv' : n.kind !== 'tv' && (!n.film || !n.film.mins || n.film.mins <= 125)));
+  const want = Object.entries(store.map).filter(([id, v]) => v && v.state === 'want').map(([id]) => normKey(id)).filter(Boolean);
+  let pool = want.filter(n => ok(n) && !tSkip.has(n.key)); tFrom = 'your watchlist';
+  if (!pool.length) { pool = reel.slice(0, 40).map(f => normKey(f.id)).filter(n => n && ok(n) && !tSkip.has(n.key)); tFrom = 'your picks'; }
+  if (!pool.length && tSkip.size) { tSkip.clear(); return pickTonight(); }
+  tPick = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
+  if (tPick) tSkip.add(tPick.key); tNone = !tPick;
+}
+function paintTonight() {
+  const chip = (o, cur, k, l) => `<button class="${cur === k ? 'on' : ''}" ${o}="${k}">${l}</button>`;
+  const res = tPick ? `<div class="tbig"><img src="${tPick.img}" alt=""><div><small>From ${tFrom}</small><b>${tPick.title}</b><small>${[tPick.year, tPick.kind === 'tv' ? 'Series' : tPick.film && tPick.film.mins ? fmtMins(tPick.film.mins) : '', GENN(tPick.genres)].filter(Boolean).join(' · ')}</small><div class="tb"><button data-top="1">Open</button><button data-another="1">Another</button></div></div></div>` : (tNone ? '<div class="dnote">Nothing fits that. Try a different mood.</div>' : '');
+  $('dcBody').innerHTML = `<div class="tlab">Mood</div><div class="tonrow">${Object.entries(MOODS).map(([k, m]) => chip('data-mood', tMood, k, m[0])).join('')}</div><div class="tlab">Length</div><div class="tonrow">${chip('data-len', tLen, 'any', 'Anything')}${chip('data-len', tLen, 'short', 'A movie')}${chip('data-len', tLen, 'tv', 'A series')}</div><button class="tgo" data-go="1">${tPick ? 'Pick again' : 'Pick for me'}</button>${res}`;
+}
+// ---- versus
+let fName = jget('nf-friend', ''), vMap = null;
+function paintVersus() {
+  $('dcBody').innerHTML = `<div class="vname"><input id="vN" placeholder="Their name, e.g. prashanth" value="${fName}" autocapitalize="none" autocomplete="off" spellcheck="false"><button id="vGo">Compare</button></div><div id="vOut"></div>`;
+  if (fName && vMap) renderVersus(); else if (fName) runVersus();
+}
+async function runVersus() {
+  const name = $('vN').value.trim().toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20), out = $('vOut'); if (!name) return;
+  if (acct && name === acct.u) { out.innerHTML = '<div class="dnote">That’s you. Enter your brother’s name.</div>'; return; }
+  out.innerHTML = '<div class="dnote">Loading…</div>'; const r = await api('?pub=' + encodeURIComponent(name));
+  if (dcTab !== 'versus' || !$('vOut')) return;
+  if (!r || r.status !== 200) { $('vOut').innerHTML = '<div class="dnote">Can’t reach the lists right now.</div>'; return; }
+  if (!r.exists) { $('vOut').innerHTML = '<div class="dnote">No lists found for that name yet. They need to sign in and mark a pick first.</div>'; return; }
+  fName = name; jset('nf-friend', name); fcustom = r.data.custom || {}; vMap = r.data.map || {}; renderVersus();
+}
+function renderVersus() {
+  const mine = store.map, th = vMap, ids = new Set([...Object.keys(mine), ...Object.keys(th)]);
+  const loved = v => v && v.state === 'seen' && v.vibe === 'up', want = v => v && v.state === 'want';
+  const G = [['You both want', id => want(mine[id]) && want(th[id])], ['They loved it, you want it', id => want(mine[id]) && loved(th[id])], ['They loved it, you haven’t marked', id => !mine[id] && loved(th[id])], ['You both loved', id => loved(mine[id]) && loved(th[id])]];
+  dcItems = {}; let html = '', both = [];
+  G.forEach(([title, fn], gi) => { const list = [...ids].filter(fn).map(normKey).filter(Boolean); if (gi < 2) both.push(...list); if (!list.length) return; html += `<div class="vrow"><h4>${title} · ${list.length}</h4><div class="vstrip">${list.map(n => dCard(n)).join('')}</div></div>`; });
+  const tp = both[Math.floor(Math.random() * both.length)];
+  vPick = tp || null;
+  $('vOut').innerHTML = (both.length ? `<div class="tonrow"><button class="tgo" id="vTonight" style="margin-top:8px">Tonight for both</button></div>` : '') + (html || '<div class="dnote">Nothing in common yet. Mark more picks and check back.</div>');
+}
+let vPick = null;
+$('dcBody').addEventListener('click', e => {
+  const c = e.target.closest('.gcard[data-k]'); if (c) { const n = dcItems[c.dataset.k]; if (n) openSheet(n); return; }
+  const m = e.target.closest('button[data-mood]'); if (m) { tMood = tMood === m.dataset.mood ? null : m.dataset.mood; tSkip.clear(); tPick = null; tNone = false; paintTonight(); return; }
+  const l = e.target.closest('button[data-len]'); if (l) { tLen = l.dataset.len; tSkip.clear(); tPick = null; tNone = false; paintTonight(); return; }
+  if (e.target.closest('button[data-go]') || e.target.closest('button[data-another]')) { pickTonight(); paintTonight(); return; }
+  if (e.target.closest('button[data-top]') && tPick) { openSheet(tPick); return; }
+  if (e.target.closest('#vGo')) { vMap = null; runVersus(); return; }
+  if (e.target.closest('#vTonight') && vPick) openSheet(vPick);
+});
+$('dcBody').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'vN') { vMap = null; runVersus(); } });
+$('dcTabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { dcTab = b.dataset.t; paintDisc(); } });
+$('dcClose').addEventListener('click', closeDisc);
+[$('discBtn'), $('discBtn2')].forEach(b => b.addEventListener('click', () => $('disc').classList.contains('on') ? closeDisc() : openDisc()));
 
 /* =============== SOUND — short, soft cues only; nothing plays in the background =============== */
 let A = null;

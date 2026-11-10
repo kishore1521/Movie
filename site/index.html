@@ -1476,7 +1476,7 @@ async function runSearch(q) {
   if (q.length < 2) { res.innerHTML = ''; note.textContent = 'Type a title, then tap its poster to save it.'; return; }
   const my = ++sSeq; note.textContent = 'Searching…';
   const r = await api('search?q=' + encodeURIComponent(q)); if (my !== sSeq || !$('dcRes')) return;
-  if (!r || r.status !== 200) { res.innerHTML = ''; note.textContent = r && r.status === 501 ? 'Search turns on once the TMDB key is added to Cloudflare.' : 'Can’t reach search right now.'; return; }
+  if (!r || r.status !== 200) { res.innerHTML = ''; note.textContent = r && r.status === 501 ? 'Search turns on once the TMDB key is added to Cloudflare.' : r && r.error ? r.error : 'Can’t reach search right now.'; return; }
   const list = (r.results || []).map(normT).map(tagFilm); res.innerHTML = list.map(n => dCard(n)).join(''); note.textContent = list.length ? '' : 'No matches.';
 }
 // ---- for you: recommendations from the titles you two loved

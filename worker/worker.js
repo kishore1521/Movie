@@ -48,10 +48,11 @@ export default {
         const results = (d.results || []).filter(x => (x.media_type === "movie" || x.media_type === "tv") && x.poster_path).slice(0, 18).map(x => slim(x));
         return J({ results });
       }
-      const ids = (url.searchParams.get("ids") || "").split(",").slice(0, 6).map(s => s.split(":")).filter(a => (a[0] === "movie" || a[0] === "tv") && /^\d+$/.test(a[1]));
+      const ids = (url.searchParams.get("ids") || "").split(",").slice(0, 8).map(s => s.split(":")).filter(a => (a[0] === "movie" || a[0] === "tv") && /^\d+$/.test(a[1]));
       if (!ids.length) return J({ results: [] });
+      const pg = Math.min(3, Math.max(1, parseInt(url.searchParams.get("p")) || 1));
       const have = new Set(ids.map(a => a[0] + ":" + a[1]));
-      const lists = await Promise.all(ids.map(a => tmdb(env, `/${a[0]}/${a[1]}/recommendations`)));
+      const lists = await Promise.all(ids.map(a => tmdb(env, `/${a[0]}/${a[1]}/recommendations`, { page: pg })));
       const score = new Map();
       lists.forEach((l, li) => ((l && l.results) || []).slice(0, 20).forEach((x, i) => {
         const kind = ids[li][0]; const key = kind + ":" + x.id;
@@ -59,7 +60,7 @@ export default {
         const cur = score.get(key) || { x, kind, n: 0, s: 0 };
         cur.n++; cur.s += (20 - i) / 20 + x.vote_average / 10; score.set(key, cur);
       }));
-      const results = [...score.values()].sort((a, b) => b.s - a.s).slice(0, 24).map(c => ({ ...slim(c.x, c.kind), n: c.n }));
+      const results = [...score.values()].sort((a, b) => b.s - a.s).slice(0, 36).map(c => ({ ...slim(c.x, c.kind), n: c.n }));
       return J({ results });
     }
 

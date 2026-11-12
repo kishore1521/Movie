@@ -210,6 +210,8 @@
   .disc.on { transform:none; }
   .dsearch { display:flex; align-items:center; gap:10px; border:1px solid var(--faint); background:rgba(255,255,255,.05); border-radius:99px; padding:0 18px; margin:14px 0 18px; } .dsearch .ic { width:18px; height:18px; color:var(--dim); flex:none; }
   .dsearch input { flex:1; min-width:0; background:none; border:0; outline:none; color:var(--fg); font:400 16px 'Space Grotesk', sans-serif; padding:14px 0; }
+  .lowq { position:fixed; left:50%; bottom:22px; transform:translateX(-50%) translateY(120px); z-index:7; pointer-events:auto; background:var(--fg); color:#05070b; border:0; border-radius:99px; padding:12px 20px; font:500 14px 'Space Grotesk', sans-serif; cursor:pointer; box-shadow:0 10px 40px rgba(0,0,0,.5); transition:transform .5s cubic-bezier(.2,.8,.1,1); white-space:nowrap; } .lowq.on { transform:translateX(-50%); }
+  .more { display:block; margin:22px auto 0; background:none; border:1px solid var(--faint); color:var(--fg); font:500 14px 'Space Grotesk', sans-serif; padding:12px 26px; border-radius:99px; cursor:pointer; }
   .dnote { color:var(--dim); font-size:13.5px; padding:14px 2px; }
   .dthumbs { display:flex; gap:8px; align-items:center; margin:14px 0 18px; color:var(--dim); font-size:12.5px; overflow-x:auto; } .dthumbs img { width:34px; height:51px; border-radius:5px; object-fit:cover; flex:none; }
   .vrow { margin-top:22px; } .vrow h4 { font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.2em; color:var(--cy); font-weight:400; margin-bottom:10px; text-transform:uppercase; }
@@ -429,6 +431,7 @@
   <div class="coach" id="syncM"><b>Keep your lists</b><p>Pick a name and a passcode (4+ characters). Use the same pair on any phone or browser and your lists come back. First time? This creates yours.</p><input id="syU" placeholder="Your name (e.g. kris)" autocapitalize="none" autocomplete="username" spellcheck="false"><input id="syP" type="password" placeholder="Passcode" autocomplete="current-password"><div id="syErr"></div><button id="syGo">Continue</button><button class="ghost" id="sySkip">Not now</button></div>
   <div class="disc" id="disc"><div class="ghead"><h3>Discover</h3><button id="dcClose" title="Close"><span data-ic="x"></span></button></div><div class="dtabs2" id="dcTabs"><button data-t="search" class="on">Search</button><button data-t="foryou">For you</button><button data-t="buzz">Buzzing</button><button data-t="tonight">Tonight</button><button data-t="versus">Versus</button></div><div id="dcBody"></div></div>
   <div class="dsheet" id="dsheet"></div>
+  <button class="lowq" id="lowq"></button>
   <div class="drawer" id="drawer"><div class="dhead"><h3>Your lists</h3><button id="dClose" title="Close"><span data-ic="x"></span></button></div><div class="sync" id="syncBox"></div><div class="dtabs" id="dTabs"><button data-t="lists" class="on">Lists</button><button data-t="hist">History</button></div><div id="dBody"></div></div>
 </div>
 
@@ -1433,11 +1436,13 @@ function normKey(key) {
   return normT(Object.assign({ id: m.c.id, kind: m.c.kind }, m.c));
 }
 async function api(pq) { const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 8000); try { const r = await fetch(SYNC_URL + pq, { signal: ctl.signal }); const j = await r.json().catch(() => ({})); return Object.assign({ status: r.status }, j); } catch (e) { return null; } finally { clearTimeout(to); } }
+function nudgeLow() { const n = reel.length; if (n > 12) return; const b = $('lowq'); b.textContent = (n ? n + ' picks left' : 'You\u2019re all caught up') + ' \u00b7 Get more'; b.classList.add('on'); }
+$('lowq').addEventListener('click', () => { $('lowq').classList.remove('on'); openDisc('foryou'); });
 let dcTab = 'search', dcItems = {}, lastQ = '', sT = 0, sSeq = 0, sheetN = null;
 const dCard = (n, badge) => { const v = store.map[n.key], st = v ? ic(v.state === 'want' ? 'heart' : v.state === 'seen' ? 'eye' : 'x') : ''; dcItems[n.key] = n;
   return `<button class="gcard" data-k="${n.key}"><div class="gp"><img src="${n.img}" alt="" loading="lazy">${n.vote ? `<span class="gm">${n.vote.toFixed(1)}</span>` : ''}${badge ? `<span class="gn">${badge}</span>` : ''}<span class="gs" style="${st ? '' : 'display:none'}">${st}</span></div><b>${n.title}</b><small>${n.year || ''}${n.kind === 'tv' ? ' · Series' : ''}</small></button>`; };
 function refreshMarks() { document.querySelectorAll('#dcBody .gcard[data-k]').forEach(c => { const v = store.map[c.dataset.k], g = c.querySelector('.gs'); if (!g) return; g.style.display = v ? '' : 'none'; g.innerHTML = v ? ic(v.state === 'want' ? 'heart' : v.state === 'seen' ? 'eye' : 'x') : ''; }); }
-function openDisc(t) { if (t) dcTab = t; closeGrid(); $('drawer').classList.remove('on'); $('disc').classList.add('on'); paintDisc(); }
+function openDisc(t) { $('lowq').classList.remove('on'); if (t) dcTab = t; closeGrid(); $('drawer').classList.remove('on'); $('disc').classList.add('on'); paintDisc(); }
 function closeDisc() { $('disc').classList.remove('on'); $('dsheet').classList.remove('on'); }
 function paintDisc() {
   document.querySelectorAll('#dcTabs button').forEach(b => b.classList.toggle('on', b.dataset.t === dcTab));
@@ -1489,18 +1494,28 @@ function lovedForRecs() {
   for (let k = 0; k < SEEDS.length && out.length < 6; k++) { const s = SEEDS[(off + k) % SEEDS.length], d = tm(s.id); add(s.id, d.type, d.tmdb); }
   return out;
 }
-async function paintForYou() {
+let fyPage = 1, fyShown = new Set();
+async function paintForYou(more) {
   const src = lovedForRecs(), body = $('dcBody');
   if (!src.length) { body.innerHTML = '<div class="dnote">Mark a few picks first and this fills in.</div>'; return; }
+  if (!more) { fyPage = 1; fyShown = new Set(); }
   const thumbs = src.slice(0, 5).map(x => { const m = metaOf(x.id); return m && m.img ? `<img src="${m.img}" alt="">` : ''; }).join('');
-  body.innerHTML = `<div class="dthumbs">Because you loved ${thumbs}</div><div class="gbody" id="dcRes"></div><div class="dnote" id="dcNote">Finding picks…</div>`;
-  const sig = src.map(x => x.kind + ':' + x.tid).join(','); let r = null; try { const c = JSON.parse(sessionStorage.getItem('nf-recs') || 'null'); if (c && c.sig === sig && Date.now() - c.at < 18e5) r = { status: 200, results: c.list }; } catch (e) {}
-  if (!r) { r = await api('recs?ids=' + encodeURIComponent(sig)); if (r && r.status === 200) { try { sessionStorage.setItem('nf-recs', JSON.stringify({ sig, at: Date.now(), list: r.results })); } catch (e) {} } }
+  if (!more) body.innerHTML = `<div class="dthumbs">Because you loved ${thumbs}</div><div class="gbody" id="dcRes"></div><div class="dnote" id="dcNote">Finding picks…</div><button class="more" id="fyMore" style="display:none">More picks</button>`;
+  else { $('dcNote').textContent = 'Finding more…'; $('fyMore').style.display = 'none'; }
+  const sig = src.map(x => x.kind + ':' + x.tid).join(','), ck = sig + '|' + fyPage; let r = null;
+  try { const c = JSON.parse(sessionStorage.getItem('nf-recs') || 'null'); if (c && c.ck === ck && Date.now() - c.at < 18e5) r = { status: 200, results: c.list }; } catch (e) {}
+  if (!r) { r = await api('recs?p=' + fyPage + '&ids=' + encodeURIComponent(sig)); if (r && r.status === 200) { try { sessionStorage.setItem('nf-recs', JSON.stringify({ ck, at: Date.now(), list: r.results })); } catch (e) {} } }
   if (dcTab !== 'foryou' || !$('dcRes')) return;
-  if (!r || r.status !== 200) { $('dcNote').textContent = r && r.status === 501 ? 'This turns on once the TMDB key is added to Cloudflare.' : 'Can’t reach the picks service right now.'; return; }
-  const list = (r.results || []).map(normT).map(tagFilm).filter(n => !store.map[n.key]);
-  $('dcRes').innerHTML = list.map(n => dCard(n, n.n > 1 ? 'x' + n.n : '')).join(''); $('dcNote').textContent = list.length ? '' : 'You have already sorted everything in this batch.';
+  if (!r || r.status !== 200) { $('dcNote').textContent = r && r.status === 501 ? 'This turns on once the TMDB key is added to Cloudflare.' : r && r.error ? r.error : 'Can’t reach the picks service right now.'; return; }
+  // Rank by how many loved titles point at it, its rating, and what you two have liked or disliked before. Drop strong dislikes.
+  const tw = tasteWeights(), pseudo = n => ({ cat: '', lang: LANGN[n.lang] || '', pace: '', genre: (n.genres || []).map(x => GEN[x]).filter(Boolean).join(' · ') });
+  const list = (r.results || []).map(normT).map(tagFilm).filter(n => !store.map[n.key] && !fyShown.has(n.key)).map(n => ({ n, b: tasteBoost(pseudo(n), tw) })).filter(x => x.b > -8)
+    .sort((a, b) => ((b.n.n || 1) * 2 + (b.n.vote || 6) / 2 + b.b / 3) - ((a.n.n || 1) * 2 + (a.n.vote || 6) / 2 + a.b / 3)).map(x => x.n);
+  list.forEach(n => fyShown.add(n.key)); $('dcRes').insertAdjacentHTML('beforeend', list.map(n => dCard(n, n.n > 1 ? 'x' + n.n : '')).join(''));
+  const total = $('dcRes').children.length; $('dcNote').textContent = total ? '' : 'Nothing new in this batch.';
+  if (fyPage < 3) { $('fyMore').style.display = ''; } else if (total) { $('dcNote').textContent = 'That’s a full set. Mark a few more and come back for fresh ones.'; }
 }
+document.addEventListener('click', e => { if (e.target.closest('#fyMore')) { fyPage++; paintForYou(true); } });
 // ---- buzzing: a short list refreshed weekly
 async function paintBuzz() {
   $('dcBody').innerHTML = '<div class="gbody" id="dcRes"></div><div class="dnote" id="dcNote">Loading…</div>';
@@ -1761,6 +1776,7 @@ function endIntro() {
   $('gate').classList.add('gone');
   readScroll();
   if (coachShown) setTimeout(askSync, 1500);
+  setTimeout(nudgeLow, 3200);
 }
 $('go').addEventListener('click', () => startIntro(true));
 $('quiet').addEventListener('click', () => startIntro(false));
